@@ -1,3 +1,3 @@
-# itinerary-agent
+# Software Engineering Standards Assistant
 
-AI tool to for holidays!
+AI tool for validating developer standards.
