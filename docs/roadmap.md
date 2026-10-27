@@ -3,12 +3,12 @@
 
 ## Phase 1 - Foundation
 
-1. Define project scope and test cases
+1. Define project scope and test cases &#9989;
 2. Set up FastAPI
 3. Generate Engineering Handbook in Markdown
 4. Set up Supabase and PostgreSQL
-6. Set up Supabase Auth
-5. Set up Alembic and create database schema
+5. Set up Supabase Auth
+6. Set up Alembic and create database schema
 
 ## Phase 2 - Knowledge Ingestion
 
