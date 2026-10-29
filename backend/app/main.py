@@ -12,6 +12,7 @@ from app.core.security import security_config
 from app.middlewares.process_time import ProcessTimeMiddleware  # noqa: E402
 from app.routers.sample import router as sample_router  # noqa: E402
 from app.routers.sample import observability_router  # noqa: E402
+from app.routers.user import router as user_router  # noqa: E402
 
 ###################### FastAPI Setup START #############################
 
@@ -20,6 +21,7 @@ app.add_middleware(ProcessTimeMiddleware)
 app.add_middleware(SecurityMiddleware, config=security_config)
 app.include_router(sample_router, prefix="/api")
 app.include_router(observability_router, prefix="/observability")
+app.include_router(user_router)
 
 add_pagination(app)
 ###################### FastAPI Setup END #############################
