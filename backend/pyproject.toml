@@ -13,6 +13,7 @@ dependencies = [
     "google-genai>=1.65.0",
     "loguru>=0.7.3",
     "openai>=2.24.0",
+    "pgvector>=0.4.1",
     "pydantic-settings>=2.11.0",
     "psycopg2-binary>=2.9.10",
     "python-dotenv>=1.2.2",

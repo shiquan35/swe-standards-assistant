@@ -22,6 +22,7 @@ config.set_main_option("sqlalchemy.url", env.DB_FULL_CONNECTION_STRING)
 # add your model's MetaData object here
 # for 'autogenerate' support
 # import app.models.sample
+import app.models.knowledge
 import app.models.user
 
 from sqlmodel import SQLModel
