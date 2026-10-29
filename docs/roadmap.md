@@ -1,6 +1,6 @@
 # Engineering Standards Assistant - Development Roadmap
 
-## Phase 1 - Foundation
+## Phase 1 - Foundation &#9989;
 
 1. Define project scope and test cases &#9989;
 2. Set up FastAPI &#9989;
