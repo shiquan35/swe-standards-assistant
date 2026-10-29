@@ -2,16 +2,6 @@ from app.core.observability import setup_langtrace
 
 setup_langtrace()
 
-from app.core.db import init_db
-
-init_db()
-
-from app.core.db import init_db, engine
-from app.core.observability import models as _obs_models
-from sqlmodel import SQLModel
-
-SQLModel.metadata.create_all(engine)
-
 from fastapi import FastAPI, status
 from fastapi.responses import RedirectResponse
 from fastapi_pagination import add_pagination
