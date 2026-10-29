@@ -7,7 +7,7 @@ from app.core.env import env
 
 url = env.DB_FULL_CONNECTION_STRING
 
-connect_args = {"check_same_thread": False}
+connect_args = {"check_same_thread": False} if url.startswith("sqlite") else {}
 engine = create_engine(
     url,
     connect_args=connect_args,
@@ -32,6 +32,7 @@ def init_db() -> None:
     """
     from app.models import sample  # noqa: F401
     from app.core.observability import models as _obs_models  # noqa: F401  ← ADD THIS
+
     SQLModel.metadata.create_all(engine)
 
 

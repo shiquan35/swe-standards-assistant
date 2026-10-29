@@ -27,7 +27,28 @@ To help developers quickly find and understand engineering best practices, devel
 | LLM             | OpenAI API                        |
 | Knowledge base  | Markdown files in repo            |
 
-
 ## Running this app
 
-More info to be added
+### Run backend
+
+Create .env
+```
+DB_FULL_CONNECTION_STRING=postgresql://postgres.mpgnugdrpvxlikolonhp:[YOUR-PASSWORD]@aws-0-ap-northeast-1.pooler.supabase.com:5432/postgres
+ENVIRONMENT=development
+LANGTRACE_API_KEY=''
+```
+
+Install dependencies (this will create .venv)
+```
+uv sync
+```
+
+Enter virtual environment
+```
+source .venv/bin/activate
+```
+
+Run server
+```
+uv run task dev
+```

@@ -14,6 +14,7 @@ dependencies = [
     "loguru>=0.7.3",
     "openai>=2.24.0",
     "pydantic-settings>=2.11.0",
+    "psycopg2-binary>=2.9.10",
     "python-dotenv>=1.2.2",
     "PyYAML>=6.0",
     "sqlmodel>=0.0.25",
@@ -21,7 +22,7 @@ dependencies = [
 ]
 
 [tool.uv]
-default-groups = ["dev", "open_guardrails", "model_armor", "observability", "prompt-validation"]
+default-groups = ["dev", "model_armor", "observability", "prompt-validation"]
 
 [dependency-groups]
 dev = [
@@ -30,9 +31,6 @@ dev = [
     "pytest-cov>=7.0.0",
     "ruff>=0.13.3",
     "taskipy>=1.14.1",
-]
-open_guardrails = [
-    "openguardrails>=3.0.2",
 ]
 model_armor = [
     "google-cloud-modelarmor>=0.4.0",

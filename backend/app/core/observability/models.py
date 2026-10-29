@@ -17,9 +17,9 @@ class LangtraceSpan(SQLModel, table=True):
     parent_span_id: Optional[str] = Field(default=None)
 
     # Operation metadata
-    span_name: str                                      # e.g. "vertexai.generate_content"
-    service_name: str = Field(default="vertex-ai")      # e.g. "vertex-ai"
-    model: Optional[str] = Field(default=None)          # e.g. "gemini-1.5-flash"
+    span_name: str  # e.g. "vertexai.generate_content"
+    service_name: str = Field(default="vertex-ai")  # e.g. "vertex-ai"
+    model: Optional[str] = Field(default=None)  # e.g. "gemini-1.5-flash"
 
     # Timing
     start_time: datetime
@@ -32,21 +32,25 @@ class LangtraceSpan(SQLModel, table=True):
     total_tokens: Optional[int] = Field(default=None)
 
     # Status
-    status_code: str = Field(default="OK")              # "OK" | "ERROR"
+    status_code: str = Field(default="OK")  # "OK" | "ERROR"
     error_message: Optional[str] = Field(default=None)
 
-    # Safety layer context (generic — works with model_armor, openguardrails, or no guardrails)
-    # Which guardrail backend was active for this call: "model_armor" | "openguardrails" | None
+    # Safety layer context (generic — works with any guardrail backend or none)
+    # Which guardrail backend was active for this call, if any.
     guardrail_backend: Optional[str] = Field(default=None)
 
     # Input guardrail — None fields mean the check was not performed
-    guardrail_input_checked: bool = Field(default=False)        # True when input was sent through guardrails
+    guardrail_input_checked: bool = Field(
+        default=False
+    )  # True when input was sent through guardrails
     guardrail_input_is_safe: Optional[bool] = Field(default=None)
     guardrail_input_risk_level: Optional[str] = Field(default=None)
     guardrail_input_score: Optional[float] = Field(default=None)
 
     # Output guardrail — None fields mean the check was not performed
-    guardrail_output_checked: bool = Field(default=False)       # True when output was sent through guardrails
+    guardrail_output_checked: bool = Field(
+        default=False
+    )  # True when output was sent through guardrails
     guardrail_output_is_safe: Optional[bool] = Field(default=None)
     guardrail_output_risk_level: Optional[str] = Field(default=None)
     guardrail_output_score: Optional[float] = Field(default=None)
@@ -62,7 +66,9 @@ class LangtraceSpan(SQLModel, table=True):
 
     # User / session identity
     user_id: Optional[str] = Field(default=None)
-    session_id: Optional[str] = Field(default=None)             # Groups spans across a conversation
+    session_id: Optional[str] = Field(
+        default=None
+    )  # Groups spans across a conversation
 
 
 class LangtraceMetricSummary(SQLModel, table=True):
@@ -71,7 +77,7 @@ class LangtraceMetricSummary(SQLModel, table=True):
     __tablename__ = "langtrace_metric_summaries"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    date: str = Field(index=True)           # "YYYY-MM-DD"
+    date: str = Field(index=True)  # "YYYY-MM-DD"
     model: str = Field(index=True)
 
     total_requests: int = Field(default=0)
@@ -85,10 +91,10 @@ class LangtraceMetricSummary(SQLModel, table=True):
     p95_latency_ms: float = Field(default=0.0)
     max_latency_ms: float = Field(default=0.0)
 
-    # Safety layer hit counts (backend-agnostic — covers model_armor, openguardrails, etc.)
-    guardrail_blocks: int = Field(default=0)          # total input + output blocks
-    guardrail_input_blocks: int = Field(default=0)    # blocks on the input/prompt
-    guardrail_output_blocks: int = Field(default=0)   # blocks on the output/response
+    # Safety layer hit counts (backend-agnostic)
+    guardrail_blocks: int = Field(default=0)  # total input + output blocks
+    guardrail_input_blocks: int = Field(default=0)  # blocks on the input/prompt
+    guardrail_output_blocks: int = Field(default=0)  # blocks on the output/response
 
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -101,7 +107,7 @@ class LangtraceBlockedEvent(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
     blocked_by: str
     blocked_text: str
-    risk_level: Optional[str] = Field(default=None)  
+    risk_level: Optional[str] = Field(default=None)
     score: Optional[float] = Field(default=None)
     is_safe: Optional[bool] = Field(default=None)
     model: Optional[str] = Field(default=None)

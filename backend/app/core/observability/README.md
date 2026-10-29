@@ -8,7 +8,7 @@ End-to-end observability for LLM calls, combining **Langtrace**, **OpenTelemetry
 
 - Automatically traces LLM calls via Langtrace
 - Persists spans and audit data to SQLite (same DB as the app)
-- Logs blocked prompts/responses from any guardrail backend (Model Armor or OpenGuardrails)
+- Logs blocked prompts/responses from the configured guardrail backend
 - Computes daily per-model metrics for dashboards and reporting
 - Optionally uploads traces to the Langtrace cloud dashboard
 
@@ -67,7 +67,7 @@ uv sync --all-groups
 LANGTRACE_API_KEY=your_key        # Optional — omit for local-only mode
 LANGTRACE_CONSOLE=true            # Print spans to stdout (dev only)
 ENVIRONMENT=development
-GUARDRAILS_BACKEND=openguardrails # Guardrail provider for input/output checks: openguardrails | model_armor | none
+GUARDRAILS_BACKEND=model_armor # Guardrail provider for input/output checks: model_armor | none
 ```
 
 ### 3. Initialise at startup
@@ -111,7 +111,7 @@ One row per LLM call, auto-populated by Langtrace. Audit fields are written back
 | `user_id` | Identity of the requester |
 | `session_id` | Groups spans across a conversation |
 | `attributes_json` | Full raw OTEL attributes (debug/audit) |
-| `guardrail_backend` | Active provider: `model_armor` \| `openguardrails` \| `null` if none |
+| `guardrail_backend` | Active provider: `model_armor` or `null` if none |
 | `guardrail_input_checked` | `true` when input was sent through guardrails |
 | `guardrail_input_is_safe` | Input guardrail verdict (`null` = not checked) |
 | `guardrail_input_risk_level` | Input risk level string |
@@ -171,19 +171,19 @@ The `POST /observability/chat/with-guardrails-observability` endpoint runs this 
 User prompt
     │
     ▼
-1. Guardrails on INPUT     → checks prompt safety (backend: model_armor or openguardrails)
+1. Guardrails on INPUT     → checks prompt safety (backend: model_armor)
     │                         blocked_by = "guardrails_input"
     ▼
 2. LLM call                → generates response (auto-traced by Langtrace/OTEL)
     │
     ▼
-3. Guardrails on OUTPUT    → checks response safety (backend: model_armor or openguardrails)
+3. Guardrails on OUTPUT    → checks response safety (backend: model_armor)
     │                         blocked_by = "guardrails_output"
     ▼
 4. Span enrichment         → writes audit fields back to langtrace_spans
 ```
 
-The guardrail backend is selected via the `guardrails_backend` env var (`model_armor` | `openguardrails` | `none`). Any block at steps 1 or 3 writes a row to `langtrace_blocked_events` before returning.
+The guardrail backend is selected via the `guardrails_backend` env var (`model_armor` | `none`). Any block at steps 1 or 3 writes a row to `langtrace_blocked_events` before returning.
 
 ---
 
@@ -245,7 +245,7 @@ Or open `database.db` directly with [DB Browser for SQLite](https://sqlitebrowse
 ## Design principles
 
 - **Local-first** — works without cloud connectivity
-- **Backend-agnostic** — guardrail fields and metrics work with any provider (Model Armor, OpenGuardrails, or none)
+- **Backend-agnostic** — guardrail fields and metrics work with Model Armor or no provider
 - **Audit-friendly** — prompt, response, and safety decisions are all stored
 - **Safe-by-default** — no side effects until `setup_langtrace()` is called
 - **Composable** — metrics can power APIs, dashboards, or alerts

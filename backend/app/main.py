@@ -1,13 +1,16 @@
-from app.core.observability import setup_langtrace 
-setup_langtrace()                                   
+from app.core.observability import setup_langtrace
 
-from app.core.db import init_db  
-init_db()                        
+setup_langtrace()
 
-from app.core.db import init_db, engine  
-from app.core.observability import models as _obs_models  
-from sqlmodel import SQLModel  
-SQLModel.metadata.create_all(engine) 
+from app.core.db import init_db
+
+init_db()
+
+from app.core.db import init_db, engine
+from app.core.observability import models as _obs_models
+from sqlmodel import SQLModel
+
+SQLModel.metadata.create_all(engine)
 
 from fastapi import FastAPI, status
 from fastapi.responses import RedirectResponse
@@ -22,7 +25,7 @@ from app.routers.sample import observability_router  # noqa: E402
 
 ###################### FastAPI Setup START #############################
 
-app = FastAPI(title="FastAPI", version="0.1.0")
+app = FastAPI(title="Developer Standards Assistant", version="0.1.0")
 app.add_middleware(ProcessTimeMiddleware)
 app.add_middleware(SecurityMiddleware, config=security_config)
 app.include_router(sample_router, prefix="/api")
@@ -41,7 +44,7 @@ app_logger.warning("Demo warning (sample log)")
 # redirect
 @app.get("/", include_in_schema=False)
 def redirect():
-    return RedirectResponse("/docs")
+    return {"service": "Developer Standards Assistant"}
 
 
 @app.get("/healthcheck", status_code=status.HTTP_200_OK)

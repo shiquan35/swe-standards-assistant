@@ -1,9 +1,0 @@
-# OpenGuardrails Filter Configuration
-# This file contains connection settings for the OpenGuardrails client.
-# It is safe to commit to version control — no secrets are stored here.
-# The API key must come from the environment (OPENGUARDRAILS_API_KEY).
-
-client:
-  base_url: "https://api.openguardrails.com/v1"
-  timeout: 30        # seconds
-  max_retries: 3

@@ -1,6 +1,6 @@
 # Model Armor — Google Cloud RAI Guardrails
 
-Google Cloud [Model Armor](https://cloud.google.com/model-armor/docs) provides Responsible AI (RAI) content filtering for LLM prompts and responses. This module integrates Model Armor as a **plug-and-play guardrails backend** for the application, alongside the existing OpenGuardrails option.
+Google Cloud [Model Armor](https://cloud.google.com/model-armor/docs) provides Responsible AI (RAI) content filtering for LLM prompts and responses. This module integrates Model Armor as a **plug-and-play guardrails backend** for the application.
 
 ---
 
@@ -80,7 +80,6 @@ The backend selection in `guardrails.py` reads `env.guardrails_backend` at start
 | `GUARDRAILS_BACKEND` value | Provider used |
 |---|---|
 | `model_armor` | `ModelArmorProvider` / `AsyncModelArmorProvider` |
-| `openguardrails` | `OpenGuardrailsProvider` / `AsyncOpenGuardrailsProvider` |
 | `none` (default) | `NoOpGuardrails` — always passes, zero external calls |
 
 ---
