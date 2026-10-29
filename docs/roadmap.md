@@ -1,13 +1,13 @@
 # Engineering Standards Assistant - Development Roadmap
 
-## Phase 1 - Foundation
+## Phase 1 - Foundation &#9989;
 
 1. Define project scope and test cases &#9989;
 2. Set up FastAPI &#9989;
-3. Generate Engineering Handbook in Markdown
+3. Generate Engineering Handbook in Markdown &#9989;
 4. Set up Supabase and PostgreSQL &#9989;
 5. Set up Alembic and users table &#9989;
-6. Create schema for knowledge base
+6. Create schema for knowledge base &#9989;
 
 ## Phase 2 - Knowledge Ingestion
 
