@@ -1,7 +1,7 @@
 from typing import Annotated, TypeAlias
 
 from fastapi import Depends
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import Session, create_engine
 
 from app.core.env import env
 
@@ -22,21 +22,3 @@ def get_session():
 
 # ruff: noqa: UP040
 SessionDep: TypeAlias = Annotated[Session, Depends(get_session)]
-
-
-def init_db() -> None:
-    """Create database tables after models are imported.
-
-    Importing models inside this function ensures SQLModel's metadata knows
-    about them. Safe to call multiple times.
-    """
-    from app.models import sample  # noqa: F401
-    from app.core.observability import models as _obs_models  # noqa: F401  ← ADD THIS
-
-    SQLModel.metadata.create_all(engine)
-
-
-if __name__ == "__main__":
-    # only run when executing this file directly
-    # ! ONLY RUN FOR LOCAL DATABASE
-    init_db()

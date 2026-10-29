@@ -1,4 +1,5 @@
 # Project Details
+
 Industry - Healthcare
 
 # FastAPI Backend
@@ -109,6 +110,7 @@ uv run task dev
 ```
 
 The API will be available at:
+
 - **API Documentation**: http://localhost:8000/docs
 - **Health Check**: http://localhost:8000/healthcheck
 - **Alternative Docs**: http://localhost:8000/redoc
@@ -118,24 +120,31 @@ The API will be available at:
 The project uses `taskipy` for task management. All commands should be run with `uv run`:
 
 ### Start Development Server
+
 ```bash
 uv run task dev
 ```
+
 Starts the FastAPI development server with auto-reload.
 
 ### Code Formatting and Linting
+
 ```bash
 uv run task format
 ```
+
 Runs Ruff to check and fix code style issues, then formats the code.
 
 ### Run Tests
+
 ```bash
 uv run task test
 ```
+
 Runs the test suite with coverage reporting. Coverage reports are generated in `htmlcov/`.
 
 ### Database Migrations
+
 ```bash
 # Create a new migration
 uv run alembic revision --autogenerate -m "Description of changes"
@@ -174,9 +183,11 @@ uv run alembic downgrade -1
 ## API Endpoints
 
 ### Health Check
+
 - `GET /healthcheck` - Application health status
 
 ### Sample Resources
+
 All sample endpoints are prefixed with `/api/samples`:
 
 - `GET /api/samples/` - List all samples (paginated)
@@ -217,6 +228,7 @@ environment = env.ENVIRONMENT
 ```
 
 The `Env` class is built on Pydantic Settings with the following features:
+
 - Automatic `.env` file loading
 - Type validation and coercion
 - Default values for optional settings
@@ -326,9 +338,7 @@ The Alembic configuration is managed through:
 #### Key Configuration Features
 
 1. **Automatic Database URL**: The `alembic/env.py` automatically reads the database URL from your environment configuration (`env.DB_FULL_CONNECTION_STRING`)
-
 2. **Model Auto-discovery**: SQLModel metadata is automatically used for migration generation
-
 3. **Environment Integration**: Uses the same environment setup as your application
 
 ### Adding New Models
@@ -336,19 +346,19 @@ The Alembic configuration is managed through:
 When you create new SQLModel models:
 
 1. **Import the model** in `alembic/env.py`:
+
    ```python
    import app.models.sample
    import app.models.your_new_model  # Add this line
    ```
-
 2. **Generate migration**:
+
    ```bash
    uv run alembic revision --autogenerate -m "Add your_new_model table"
    ```
-
 3. **Review the generated migration** in `alembic/versions/` to ensure it's correct
-
 4. **Apply the migration**:
+
    ```bash
    uv run alembic upgrade head
    ```
@@ -409,12 +419,14 @@ The application includes comprehensive security features through `app/core/secur
 ### Environment-Specific Behavior
 
 **Development Environment:**
+
 - Permissive CORS settings (`origins: ["*"]`)
 - Security features disabled for easier development
 - No IP banning or penetration detection
 - HTTP connections allowed
 
 **Production Environment:**
+
 - Strict CORS origins (configured domains only)
 - All security features enabled
 - HTTPS enforcement
@@ -424,6 +436,7 @@ The application includes comprehensive security features through `app/core/secur
 ## Dependencies
 
 ### Core Dependencies
+
 - `fastapi[standard]` - Web framework with all standard features
 - `sqlmodel` - SQL database integration with SQLAlchemy
 - `alembic` - Database migration tool for SQLAlchemy
@@ -433,6 +446,7 @@ The application includes comprehensive security features through `app/core/secur
 - `pydantic-settings` - Settings management with environment variable support
 
 ### Development Dependencies
+
 - `pytest` - Testing framework
 - `pytest-cov` - Coverage reporting
 - `ruff` - Linting and formatting
