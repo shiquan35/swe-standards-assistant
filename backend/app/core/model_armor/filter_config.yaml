@@ -1,0 +1,50 @@
+# Model Armor Filter Configuration
+# This file contains filter types and settings for creating Model Armor templates.
+# It is safe to commit to version control — no secrets are stored here.
+# The API credentials (GCP project, location, template ID) come from the environment.
+
+filter_config:
+  rai_settings:
+    # Responsible AI (RAI) filters with their respective confidence levels
+    rai_filters:
+      - filter_type: "HATE_SPEECH"
+        confidence_level: "MEDIUM_AND_ABOVE"
+        description: "Detects and filters hate speech content"
+
+      - filter_type: "DANGEROUS"
+        confidence_level: "MEDIUM_AND_ABOVE"
+        description: "Detects and filters dangerous or harmful content"
+
+      - filter_type: "SEXUALLY_EXPLICIT"
+        confidence_level: "MEDIUM_AND_ABOVE"
+        description: "Detects and filters sexually explicit content"
+
+      - filter_type: "HARASSMENT"
+        confidence_level: "MEDIUM_AND_ABOVE"
+        description: "Detects and filters harassment content"
+
+  pi_and_jailbreak_settings:
+    # Prompt Injection and Jailbreak filter settings
+    filter_enforcement: "ENABLED"
+    confidence_level: "MEDIUM_AND_ABOVE"
+    description: "Detects and prevents jailbreak attempts and prompt injection"
+
+# ── Reference values ──────────────────────────────────────────────────────────
+
+# Available confidence levels (from least to most sensitive)
+confidence_levels:
+  - "LOW_AND_ABOVE"
+  - "MEDIUM_AND_ABOVE"
+  - "HIGH_AND_ABOVE"
+
+# Available RAI filter types
+available_rai_filters:
+  - "HATE_SPEECH"
+  - "DANGEROUS"
+  - "SEXUALLY_EXPLICIT"
+  - "HARASSMENT"
+
+# Available PI and Jailbreak filter enforcement options
+pi_jailbreak_enforcement_options:
+  - "ENABLED"
+  - "DISABLED"
