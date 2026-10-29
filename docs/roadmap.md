@@ -1,10 +1,9 @@
-
 # Engineering Standards Assistant - Development Roadmap
 
 ## Phase 1 - Foundation
 
 1. Define project scope and test cases &#9989;
-2. Set up FastAPI
+2. Set up FastAPI &#9989;
 3. Generate Engineering Handbook in Markdown
 4. Set up Supabase and PostgreSQL
 5. Set up Supabase Auth
