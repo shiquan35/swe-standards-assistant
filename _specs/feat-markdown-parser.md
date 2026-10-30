@@ -54,6 +54,7 @@ File path ─► strict UTF-8 read ─► parse_markdown(text, source_path)
 - Block nodes: paragraph (inline nodes), list (ordered flag/start/items), list item (nested blocks + optional checked state), code block (verbatim code + optional fence language), table (header/body cell arrays of inline nodes), blockquote (nested blocks), thematic break, and opaque raw HTML.
 - Configure `MarkdownIt("gfm-like", {"html": True})` and `.use(tasklists_plugin)`. The `gfm-like` preset enables tables, strikethrough, and linkify; the linkify extra supplies `linkify-it-py`. The task-list plugin injects checkbox `html_inline` tokens and marks list-item tokens; convert only plugin-generated checkbox tokens into `checked: bool`, and omit those synthetic tokens from raw-HTML content.
 - Document introduction is an ordered block list. H1 is the plain-text document title; H2–H6 create sections. Each section's heading path is plain text from H1 through itself.
+- Only document-root headings participate in title validation and the section outline. Headings inside lists or blockquotes are retained as typed `HeadingBlock` nodes (level, inline children, inherited source range); they do not count as document H1/H2 headings or change section ownership.
 - `parse_markdown_file(path)` reads the path and delegates with its supplied path string. Do not resolve/fetch links or rewrite paths.
 
 ## Validation Rules
@@ -82,11 +83,11 @@ File path ─► strict UTF-8 read ─► parse_markdown(text, source_path)
 | `backend/uv.lock` | Lock the direct parser/plugin dependencies |
 | `backend/tests/ingestion/test_markdown_parser.py` | Add tests for all handbook topics, synthetic constructs, ordering, ranges, and invalid input |
 
-- [ ] Implement the text and file APIs; preserve caller-supplied path form and strict UTF-8 behavior.
-- [ ] Convert tokens to the agreed dataclass structure, preserving block order and selected GFM semantics.
-- [ ] Validate handbook title/section rules and map source ranges.
-- [ ] Extract checked state from task-list plugin tokens; verify the locked plugin versions and configuration.
-- [ ] Add output-focused tests and verify no parser path accesses the database or generates embeddings.
+- [x] Implement the text and file APIs; preserve caller-supplied path form and strict UTF-8 behavior.
+- [x] Convert tokens to the agreed dataclass structure, preserving block order and selected GFM semantics.
+- [x] Validate handbook title/section rules and map source ranges.
+- [x] Extract checked state from task-list plugin tokens; verify the locked plugin versions and configuration.
+- [x] Add output-focused tests and verify no parser path accesses the database or generates embeddings.
 
 ## Acceptance Criteria
 
