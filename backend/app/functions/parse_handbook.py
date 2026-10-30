@@ -13,7 +13,7 @@ def main() -> None:
         "path",
         nargs="?",
         type=Path,
-        default=Path(__file__).parent
+        default=Path(__file__).resolve().parents[2]
         / "knowledge_base"
         / "engineering-handbook"
         / "api-standards.md",

@@ -80,6 +80,75 @@ def test_handbook_topics(path: Path) -> None:
             assert child.source_range.end_line <= section.source_range.end_line
 
 
+def test_backend_standards_content_end_to_end() -> None:
+    document = parse_markdown(
+        "# Backend Standards\n"
+        "\n"
+        "## API Design\n"
+        "\n"
+        "Use **REST conventions**.\n"
+        "\n"
+        "### HTTP Methods\n"
+        "\n"
+        "- Use `GET` to retrieve resources.\n"
+        "- Use `POST` to create resources.\n"
+        "\n"
+        "```python\n"
+        "def hello():\n"
+        '    print("Hello")\n'
+        "```\n"
+    )
+    assert document.title == "Backend Standards"
+    assert document.introduction == []
+    assert len(document.sections) == 1
+    api_section = document.sections[0]
+    assert api_section.heading == "API Design"
+    assert api_section.level == 2
+    assert api_section.source_range == SourceRange(3, 15)
+    paragraph, http_section = api_section.children
+    assert isinstance(paragraph, Paragraph)
+    assert paragraph.children == [
+        Text("Use "),
+        Strong([Text("REST conventions")]),
+        Text("."),
+    ]
+    assert paragraph.source_range == SourceRange(5, 5)
+    assert isinstance(http_section, Section)
+    assert http_section.heading == "HTTP Methods"
+    assert http_section.level == 3
+    assert http_section.heading_path == [
+        "Backend Standards",
+        "API Design",
+        "HTTP Methods",
+    ]
+    assert http_section.source_range == SourceRange(7, 15)
+    listing, code_block = http_section.children
+    assert isinstance(listing, ListBlock)
+    assert not listing.ordered
+    assert listing.source_range == SourceRange(9, 11)
+    assert len(listing.items) == 2
+    for item, method, description in zip(
+        listing.items,
+        ["GET", "POST"],
+        [" to retrieve resources.", " to create resources."],
+        strict=True,
+    ):
+        assert item.checked is None
+        assert len(item.children) == 1
+        item_paragraph = item.children[0]
+        assert isinstance(item_paragraph, Paragraph)
+        assert item_paragraph.children == [
+            Text("Use "),
+            CodeSpan(method),
+            Text(description),
+        ]
+        assert item_paragraph.source_range == listing.source_range
+    assert isinstance(code_block, CodeBlock)
+    assert code_block.language == "python"
+    assert code_block.content == 'def hello():\n    print("Hello")\n'
+    assert code_block.source_range == SourceRange(12, 15)
+
+
 def test_section_order_paths_and_ownership() -> None:
     document = parse_markdown(
         "# Title\n\nIntroduction.\n\n## A\nBefore.\n### B\nAfter B.\n"
