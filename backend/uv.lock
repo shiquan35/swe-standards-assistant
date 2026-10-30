@@ -63,6 +63,8 @@ dependencies = [
     { name = "google-cloud-aiplatform" },
     { name = "google-genai" },
     { name = "loguru" },
+    { name = "markdown-it-py", extra = ["linkify"] },
+    { name = "mdit-py-plugins" },
     { name = "openai" },
     { name = "pgvector" },
     { name = "psycopg2-binary" },
@@ -106,6 +108,8 @@ requires-dist = [
     { name = "google-cloud-aiplatform", specifier = ">=1.139.0" },
     { name = "google-genai", specifier = ">=1.65.0" },
     { name = "loguru", specifier = ">=0.7.3" },
+    { name = "markdown-it-py", extras = ["linkify"], specifier = ">=4.0.0,<5" },
+    { name = "mdit-py-plugins", specifier = ">=0.5.0,<0.6" },
     { name = "openai", specifier = ">=2.24.0" },
     { name = "pgvector", specifier = ">=0.4.1" },
     { name = "psycopg2-binary", specifier = ">=2.9.10" },
@@ -1289,6 +1293,15 @@ wheels = [
 ]
 
 [[package]]
+name = "linkify-it-py"
+version = "2.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/45/98/7a1a5f31fd5c7ba93e963b168e244b8e3dd705b3d2a718e3c3307583bf57/linkify_it_py-2.2.0.tar.gz", hash = "sha256:907acd2d17ac1fbb9ddb62c8957ccbd6158cac602231a15c3b0cd1e215f03cee", size = 32939, upload-time = "2026-08-29T07:07:08.305Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/13/d4/1152d1c7ab42d8b908be64fd200ddc870dc9d4925e951198702084aa1a7d/linkify_it_py-2.2.0-py3-none-any.whl", hash = "sha256:3adc40eb5af300b2605fcfdb968c24e1d780a90f1f2221af7c15e5111e94d443", size = 21971, upload-time = "2026-08-29T07:07:07.164Z" },
+]
+
+[[package]]
 name = "locust"
 version = "2.43.4"
 source = { registry = "https://pypi.org/simple" }
@@ -1349,6 +1362,11 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/5b/f5/4ec618ed16cc4f8fb3b701563655a69816155e79e24a17b651541804721d/markdown_it_py-4.0.0.tar.gz", hash = "sha256:cb0a2b4aa34f932c007117b194e945bd74e0ec24133ceb5bac59009cda1cb9f3", size = 73070, upload-time = "2025-08-11T12:57:52.854Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/94/54/e7d793b573f298e1c9013b8c4dade17d481164aa517d1d7148619c2cedbf/markdown_it_py-4.0.0-py3-none-any.whl", hash = "sha256:87327c59b172c5011896038353a81343b6754500a08cd7a4973bb48c6d578147", size = 87321, upload-time = "2025-08-11T12:57:51.923Z" },
+]
+
+[package.optional-dependencies]
+linkify = [
+    { name = "linkify-it-py" },
 ]
 
 [[package]]
@@ -1445,6 +1463,18 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/4c/45/c625fc2b84b8dcf2181eb411f130729446164215409c8e0c8fd01a53f388/maxminddb-2.8.2-cp314-cp314t-win32.whl", hash = "sha256:6bfb41c3a560a60fc20d0d87cb400003974fbb833b44571250476c2d9cb4d407", size = 36349, upload-time = "2025-07-25T20:31:21.004Z" },
     { url = "https://files.pythonhosted.org/packages/27/8d/46c202be273fd8ec985686e1fdd84ad55c7234dc66d82d6d59e5caf438e4/maxminddb-2.8.2-cp314-cp314t-win_amd64.whl", hash = "sha256:ec6bba1b1f0fd0846aac5b0af1f84804c67702e873aa9d79c9965794a635ada8", size = 38595, upload-time = "2025-07-25T20:31:22.185Z" },
     { url = "https://files.pythonhosted.org/packages/62/33/09601f476fd9d494e967f15c1e05aa1e35bdf5ee54555596e05e5c9ec8c9/maxminddb-2.8.2-cp314-cp314t-win_arm64.whl", hash = "sha256:929a00528db82ffa5aa928a9cd1a972e8f93c36243609c25574dfd920c21533b", size = 33990, upload-time = "2025-07-25T20:31:23.367Z" },
+]
+
+[[package]]
+name = "mdit-py-plugins"
+version = "0.5.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "markdown-it-py" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b2/fd/a756d36c0bfba5f6e39a1cdbdbfdd448dc02692467d83816dff4592a1ebc/mdit_py_plugins-0.5.0.tar.gz", hash = "sha256:f4918cb50119f50446560513a8e311d574ff6aaed72606ddae6d35716fe809c6", size = 44655, upload-time = "2025-08-11T07:25:49.083Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fb/86/dd6e5db36df29e76c7a7699123569a4a18c1623ce68d826ed96c62643cae/mdit_py_plugins-0.5.0-py3-none-any.whl", hash = "sha256:07a08422fc1936a5d26d146759e9155ea466e842f5ab2f7d2266dd084c8dab1f", size = 57205, upload-time = "2025-08-11T07:25:47.597Z" },
 ]
 
 [[package]]
