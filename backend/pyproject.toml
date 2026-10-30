@@ -22,6 +22,7 @@ dependencies = [
     "PyYAML>=6.0",
     "sqlmodel>=0.0.25",
     "ulid-py>=1.1.0",
+    "tiktoken>=0.12.0",
 ]
 
 [tool.uv]
