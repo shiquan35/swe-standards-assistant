@@ -52,3 +52,12 @@ Run server
 ```
 uv run task dev
 ```
+
+### Test markdown parser
+Parses `api-standards.md` by default
+```
+uv run python -m app.functions.parse_handbook
+```
+```
+uv run python -m app.functions.parse_handbook knowledge_base/engineering-handbook/coding-standards.md
+```
