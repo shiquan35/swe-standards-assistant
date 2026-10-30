@@ -249,7 +249,9 @@ def _parse(
     normalized = text.replace("\r\n", "\n").replace("\r", "\n")
     nodes = SyntaxTreeNode(_parser().parse(normalized)).children
     title_node = _validate(nodes, normalized)
-    title = _plain_text(title_node.children)
+    title = _plain_text(title_node.children).strip()
+    if not title:
+        _reject("empty_h1", _range(title_node).start_line)
     document = ParsedDocument(title, source_path, [], [])
     line_count = len(normalized.split("\n")) - int(normalized.endswith("\n"))
     stack: list[Section] = []

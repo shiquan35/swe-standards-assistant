@@ -197,6 +197,30 @@ def test_task_content_keeps_automatic_links() -> None:
     )
 
 
+@pytest.mark.parametrize("marker, checked", [("x", True), (" ", False)])
+def test_task_reparsing_preserves_inline_content(marker: str, checked: bool) -> None:
+    document = parse_markdown(
+        f"# T\n## S\n- [{marker}] **bold** *em* `code` [ref][target] [ ] literal\n"
+        "\n[target]: /destination\n"
+    )
+    listing = document.sections[0].children[0]
+    assert isinstance(listing, ListBlock)
+    assert listing.items[0].checked is checked
+    paragraph = listing.items[0].children[0]
+    assert isinstance(paragraph, Paragraph)
+    assert paragraph.children == [
+        Text(" "),
+        Strong([Text("bold")]),
+        Text(" "),
+        Emphasis([Text("em")]),
+        Text(" "),
+        CodeSpan("code"),
+        Text(" "),
+        Link("/destination", [Text("ref")]),
+        Text(" [ ] literal"),
+    ]
+
+
 def test_table_cells_and_gfm_pipe_semantics() -> None:
     table = _body(
         "| A | B | C |\n|---|---|---|\n"
@@ -313,6 +337,16 @@ def test_invalid_document(text: str, reason: str) -> None:
     with pytest.raises(MarkdownParseError) as caught:
         parse_markdown(text)
     assert caught.value.reason_code == reason
+
+
+@pytest.mark.parametrize(
+    "heading", ["#", "#   ", "# <!-- comment -->", "# &#32;", "# [ ](target)"]
+)
+def test_empty_plain_text_title_is_rejected(heading: str) -> None:
+    with pytest.raises(MarkdownParseError) as caught:
+        parse_markdown(f"\n{heading}\n\n## API Design\nBody\n")
+    assert caught.value.reason_code == "empty_h1"
+    assert caught.value.line == 2
 
 
 def test_file_api_paths_utf8_and_errors(
