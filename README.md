@@ -64,7 +64,8 @@ uv run python -m app.functions.parse_handbook knowledge_base/engineering-handboo
 
 ### Test chunkers
 Defaults:
-- `api-standards.md`
+- performs chunking on `api-standards.md`
+  - update DEFAULT_PATH in `chunk_handbook.py` 
 - heading-aware strategy
 ```
 uv run python -m app.functions.chunk_handbook

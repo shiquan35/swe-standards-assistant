@@ -19,6 +19,7 @@ DEFAULT_PATH = (
     / "knowledge_base"
     / "engineering-handbook"
     / "api-standards.md"
+    # / "coding-standards.md"
 )
 
 
