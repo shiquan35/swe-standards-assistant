@@ -61,3 +61,26 @@ uv run python -m app.functions.parse_handbook
 ```
 uv run python -m app.functions.parse_handbook knowledge_base/engineering-handbook/coding-standards.md
 ```
+
+### Test chunkers
+Defaults:
+- `api-standards.md`
+- heading-aware strategy
+```
+uv run python -m app.functions.chunk_handbook
+```
+
+500 tokens:
+```
+uv run python -m app.functions.chunk_handbook --strategy fixed
+```
+
+500 tokens + 100 overlap:
+```
+uv run python -m app.functions.chunk_handbook --strategy fixed_overlap
+```
+
+custom tokens and overlap:
+```
+uv run python -m app.functions.chunk_handbook --strategy fixed_overlap --max-tokens 400 --overlap-tokens 80
+```
