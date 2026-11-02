@@ -63,6 +63,9 @@ uv run python -m app.functions.parse_handbook knowledge_base/engineering-handboo
 ```
 
 ### Test chunkers
+Note:
+Shortest document is `engineering-exceptions` with 49 lines and 367 tokens.
+
 Defaults:
 - performs chunking on `api-standards.md`
   - update DEFAULT_PATH in `chunk_handbook.py` 
