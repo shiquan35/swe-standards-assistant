@@ -57,10 +57,38 @@ def _validate_tree(value: object) -> None:
             _validate_tree(getattr(value, attribute.name))
 
 
-def _escape(text: str) -> str:
-    # Escape entity starts, autolinks, task markers and block-openers as well as
-    # inline delimiters. Markdown backslash escapes preserve their literal text.
-    return re.sub(r"([\\`*{}\[\]()<>#+\-.!_|~&])", r"\\\1", text)
+def _escape(text: str, *, table: bool = False) -> str:
+    """Escape Markdown syntax only where it can change this text's meaning."""
+    # These characters can start or close inline constructs. Ordinary prose
+    # punctuation (notably periods and hyphens) is left readable.
+    text = re.sub(r"([\\`*_\[\]])", r"\\\1", text)
+
+    # An ampersand is special only when it begins a recognized entity. A less-
+    # than sign is special when it starts an HTML tag/comment or an autolink.
+    text = re.sub(
+        r"&(?=(?:#[0-9]{1,7}|#x[0-9a-fA-F]{1,6}|[A-Za-z][A-Za-z0-9]{1,31});)",
+        r"\\&",
+        text,
+    )
+    text = re.sub(
+        r"<(?=(?:/?[A-Za-z][A-Za-z0-9-]*(?:\s|/?>)|!--|\?|https?://|mailto:|[^\s<>@]+@))",
+        r"\\<",
+        text,
+        flags=re.IGNORECASE,
+    )
+
+    # Avoid turning literal text at a line start into a block construct. Keep
+    # the marker itself unescaped unless it has Markdown's actual opener form.
+    text = re.sub(r"(?m)^([ ]{0,3})(?=#{1,6}[ \t])", r"\1\\", text)
+    text = re.sub(r"(?m)^([ ]{0,3})(?=>[ \t])", r"\1\\", text)
+    text = re.sub(r"(?m)^([ ]{0,3})(?=[-*+][ \t])", r"\1\\", text)
+    text = re.sub(r"(?m)^([ ]{0,3})(?=\d{1,9}[.)][ \t])", r"\1", text)
+    text = re.sub(r"(?m)^(\s{0,3}\d{1,9})([.)])(?=[ \t])", r"\1\\\2", text)
+    text = re.sub(r"(?m)^([ ]{0,3})(?=(?:[-*_][ \t]*){3,}$)", r"\1\\", text)
+
+    if table:
+        text = text.replace("|", r"\|")
+    return text
 
 
 def _destination(text: str) -> str:
@@ -94,7 +122,7 @@ def _inlines(
         last_marker = None
         match node:
             case Text(content):
-                parts.append(_escape(content))
+                parts.append(_escape(content, table=table))
             case Emphasis(children) | Strong(children):
                 # Adjacent equal delimiters would merge (*a**b*); alternate
                 # markers for siblings and nesting without adding source text.

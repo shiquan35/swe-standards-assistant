@@ -58,7 +58,7 @@ def _body(block: Block) -> str:
     [
         (
             Text(r"*literal* [x] &entity; <tag> 1. a|b \\"),
-            r"\*literal\* \[x\] \&entity; \<tag\> 1\. a\|b \\\\",
+            "\\*literal\\* \\[x\\] \\&entity; \\<tag> 1. a|b " + "\\\\\\\\",
         ),
         (Emphasis([Text("em")]), "*em*"),
         (Strong([Text("strong")]), "**strong**"),
@@ -398,3 +398,30 @@ def test_inline_semantics_round_trip(body: str) -> None:
     parsed = parse_markdown(canonical.text).sections[0].children[0]
     assert isinstance(parsed, Paragraph)
     assert paragraph.children == parsed.children
+
+
+def test_prose_punctuation_is_not_needlessly_escaped() -> None:
+    paragraph = Paragraph(
+        [
+            Text("Engineering standards cannot anticipate constraints. "),
+            Text("Security-related exceptions MUST follow policy."),
+        ],
+        SourceRange(3, 3),
+    )
+    assert _body(paragraph) == (
+        "Engineering standards cannot anticipate constraints. "
+        "Security-related exceptions MUST follow policy."
+    )
+
+
+def test_literal_block_openers_and_entities_remain_text() -> None:
+    cases = [
+        ("# not a heading", r"\# not a heading"),
+        ("- not a list", r"\- not a list"),
+        ("1. not a list", r"1\. not a list"),
+        ("---", r"\---"),
+        ("&amp;", r"\&amp;"),
+        ("<https://example.test>", r"\<https://example.test>"),
+    ]
+    for content, expected in cases:
+        assert _body(_paragraph(content)) == expected
