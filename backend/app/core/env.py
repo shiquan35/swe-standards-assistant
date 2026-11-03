@@ -1,11 +1,16 @@
 from typing import Literal
 
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Env(BaseSettings):
     ENVIRONMENT: Literal["development", "staging", "production"] = "development"
     DB_FULL_CONNECTION_STRING: str
+
+    # Embedding credentials are required only when making an uncached request.
+    OPENAI_API_KEY: SecretStr | None = None
+    OPENAI_EMBEDDING_MODEL: Literal["text-embedding-3-small"] = "text-embedding-3-small"
 
     # Guardrails settings
     guardrails_backend: Literal["model_armor", "none"] = "none"
