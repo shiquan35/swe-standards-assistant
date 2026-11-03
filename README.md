@@ -88,3 +88,9 @@ custom tokens and overlap:
 ```
 uv run python -m app.functions.chunk_handbook --strategy fixed_overlap --max-tokens 400 --overlap-tokens 80
 ```
+```
+uv run python -m app.functions.chunk_handbook \
+  --strategy heading_aware \
+  --max-tokens 100 \
+  --overlap-tokens 20
+```
