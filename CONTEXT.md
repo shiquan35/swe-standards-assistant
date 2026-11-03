@@ -24,6 +24,10 @@ _Avoid_: Chunk; a block is not necessarily the unit persisted or embedded for re
 A persisted content unit associated with one knowledge document; unlike a section, it is not the source document's heading-defined organization.
 _Avoid_: Section when referring to a persisted content unit.
 
+**Chunk candidate**:
+A transient, not-yet-persisted content unit produced by chunking a handbook document.
+_Avoid_: Chunk when referring specifically to output that has not been persisted.
+
 **Heading path**:
 The ordered hierarchy of plain-text titles from the document title through the containing section titles.
 _Avoid_: Heading when the full ancestry is intended; heading may mean only the nearest title.

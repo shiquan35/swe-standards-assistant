@@ -72,6 +72,7 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "pyyaml" },
     { name = "sqlmodel" },
+    { name = "tiktoken" },
     { name = "ulid-py" },
 ]
 
@@ -117,6 +118,7 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.2.2" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "sqlmodel", specifier = ">=0.0.25" },
+    { name = "tiktoken", specifier = ">=0.12.0" },
     { name = "ulid-py", specifier = ">=1.1.0" },
 ]
 

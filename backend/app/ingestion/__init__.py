@@ -1,5 +1,27 @@
-"""Public handbook parser API and source models."""
+"""Public parser, canonical serialization, and transient chunking contracts."""
 
+from app.ingestion.chunk_models import (
+    BodyRun,
+    ChunkCandidate,
+    Chunker,
+    ChunkingConfig,
+    ChunkingError,
+    ChunkPart,
+    ChunkStrategy,
+    ContextKind,
+    PartRole,
+    SerializedBlock,
+    SerializedMarkdown,
+    SerializedSegment,
+    Tokenizer,
+)
+from app.ingestion.chunker import (
+    FixedOverlapChunker,
+    FixedSizeChunker,
+    HeadingAwareChunker,
+    chunk_document,
+    validate_chunks,
+)
 from app.ingestion.markdown_models import (
     Block,
     Blockquote,
@@ -31,8 +53,30 @@ from app.ingestion.markdown_parser import (
     parse_markdown,
     parse_markdown_file,
 )
+from app.ingestion.markdown_serializer import serialize_markdown
+from app.ingestion.tokenizer import TiktokenTokenizer
 
 __all__ = [
+    "FixedOverlapChunker",
+    "FixedSizeChunker",
+    "HeadingAwareChunker",
+    "chunk_document",
+    "validate_chunks",
+    "BodyRun",
+    "ChunkCandidate",
+    "Chunker",
+    "ChunkingConfig",
+    "ChunkingError",
+    "ChunkPart",
+    "ChunkStrategy",
+    "ContextKind",
+    "PartRole",
+    "SerializedBlock",
+    "SerializedMarkdown",
+    "SerializedSegment",
+    "Tokenizer",
+    "TiktokenTokenizer",
+    "serialize_markdown",
     "Block",
     "Blockquote",
     "CodeBlock",

@@ -61,3 +61,36 @@ uv run python -m app.functions.parse_handbook
 ```
 uv run python -m app.functions.parse_handbook knowledge_base/engineering-handbook/coding-standards.md
 ```
+
+### Test chunkers
+Note:
+Shortest document is `engineering-exceptions.md` with 49 lines and 367 tokens.
+
+Defaults:
+- performs chunking on `api-standards.md`
+  - update DEFAULT_PATH in `chunk_handbook.py` 
+- heading-aware strategy
+```
+uv run python -m app.functions.chunk_handbook
+```
+
+500 tokens:
+```
+uv run python -m app.functions.chunk_handbook --strategy fixed
+```
+
+500 tokens + 100 overlap:
+```
+uv run python -m app.functions.chunk_handbook --strategy fixed_overlap
+```
+
+custom tokens and overlap:
+```
+uv run python -m app.functions.chunk_handbook --strategy fixed_overlap --max-tokens 400 --overlap-tokens 80
+```
+```
+uv run python -m app.functions.chunk_handbook \
+  --strategy heading_aware \
+  --max-tokens 100 \
+  --overlap-tokens 20
+```
