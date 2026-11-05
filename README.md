@@ -100,3 +100,14 @@ uv run python -m app.functions.chunk_handbook --strategy fixed_overlap --max-tok
 ```
 uv run python -m app.functions.chunk_handbook --strategy heading_aware --max-tokens 100 --overlap-tokens 20
 ```
+
+## Generate embeddings (WRITES INTO SQL)
+```
+uv run python -m app.functions.ingest_handbook --strategy fixed
+```
+```
+uv run python -m app.functions.ingest_handbook --strategy fixed_overlap
+```
+```
+uv run python -m app.functions.ingest_handbook --strategy heading_aware
+```
