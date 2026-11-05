@@ -13,16 +13,16 @@
 |---|---|---|---|
 | Constraint | Parser boundary | Consume existing `ParsedDocument`/AST; do not make parsing perform chunking | Preserves Phase 2 step 7 separation |
 | Constraint | Persistence | No SQLModel records, database calls, IDs, embeddings, or migrations | Phase 2 step 8 produces transient candidates only |
-| Constraint | Model/tokenizer | OpenAI `text-embedding-3-small`; `cl100k_base` via `tiktoken` | Matches README and OpenAI embedding documentation; 500 is below the model's 8192-token input limit |
+| Constraint | Model/tokenizer | OpenAI `text-embedding-3-small`; `cl100k_base` via `tiktoken` | Matches README and OpenAI embedding documentation; 200 is below the model's 8192-token input limit |
 | Choice | Output term | `ChunkCandidate`, distinct from persisted `Chunk` | Matches the project glossary and keeps chunking independent of persistence |
 | Choice | Shared API | All strategies implement one `chunk(document, config, tokenizer)` interface and return ordered candidates | Allows strategies to be swapped without changing consumers |
-| Choice | Defaults | A: max 500/overlap 0; B: max 500/overlap 100; C: max 500/overlap 100 | Establishes the requested baseline profiles while retaining configurable values |
+| Choice | Defaults | A: max 200/overlap 0; B: max 200/overlap 40; C: max 200/overlap 40 | Establishes the requested baseline profiles while retaining configurable values |
 | Choice | Canonical content | Serialize typed AST nodes into deterministic Markdown; preserve represented semantics, not original bytes/formatting | Parser output is structured and does not retain source text |
 | Choice | Fixed strategies | A/B tokenize the whole serialized document, including title, introduction and headings; they may cross heading paths and split Markdown syntax; do not inject headings per window | Keeps A/B simple, comparable baselines |
 | Choice | Heading-aware | Keep source-contiguous runs within a single heading path; process introduction under `[document title]`; skip empty/heading-only sections | Uses parser hierarchy without merging content across nested sections |
 | Choice | Oversized content | C packs whole blocks first, prefers list-item/table-row/code-line/paragraph boundaries, then falls back to strict token windows; repeat table headers when splitting tables | Preserves structure when possible while enforcing the hard maximum |
 | Choice | Heading context | C prefixes every candidate with the full heading breadcrumb where feasible, including unsplit candidates; count it toward the maximum; reduce overlap first, then omit the prefix if necessary | Makes heading context consistent without sacrificing content or the hard limit |
-| Choice | Overlap | A has none; B targets the preceding source-text suffix; C prefers natural source boundaries within the target and never overlaps generated context; record actual overlap | Keeps baseline windows simple and C structure-aware; exact 100-token overlap is not always feasible |
+| Choice | Overlap | A has none; B targets the preceding source-text suffix; C prefers natural source boundaries within the target and never overlaps generated context; record actual overlap | Keeps baseline windows simple and C structure-aware; exact 40-token overlap is not always feasible |
 | Choice | Provenance | Carry optional `source_path`, ordered heading paths and ordered 1-based inclusive source spans; preserve only ranges available from the AST | Supports later attribution without re-parsing or changing parser-owned data |
 | Choice | Logging | Structured safe summaries only; never log source content, title, headings, or path | Follows parser logging constraints and avoids leaking handbook content |
 
@@ -34,9 +34,9 @@ ParsedDocument
       ▼
 Canonical Markdown serializer ──► serialized text + source/heading segment map
       │                                           │
-      ├── Fixed 500/0 ────────────────────────────┤
-      ├── Fixed 500/100 ──────────────────────────┤──► ordered ChunkCandidate list
-      └── Heading-aware 500/100 ──────────────────┘
+      ├── Fixed 200/0 ────────────────────────────┤
+      ├── Fixed 200/40 ───────────────────────────┤──► ordered ChunkCandidate list
+      └── Heading-aware 200/40 ───────────────────┘
                                                   │
                          cl100k_base tokenizer ◄──┘
 
@@ -45,7 +45,7 @@ No embedding API or database is called.
 
 ## Code Shape
 
-- `ChunkingConfig(max_tokens=500, overlap_tokens=...)`; validate `max_tokens > 0` and `0 <= overlap_tokens < max_tokens`.
+- `ChunkingConfig(max_tokens=200, overlap_tokens=...)`; validate `max_tokens > 0` and `0 <= overlap_tokens < max_tokens`.
 - `Chunker` protocol: `chunk(document: ParsedDocument, config: ChunkingConfig, tokenizer: Tokenizer) -> list[ChunkCandidate]`.
 - Provide fixed-no-overlap, fixed-overlap and heading-aware implementations with the agreed default profiles.
 - `ChunkCandidate`: zero-based `ordinal`, strategy identifier, canonical `content`, `token_count`, optional `source_path`, ordered distinct `heading_paths`, and ordered `source_spans: list[SourceRange]`.
@@ -71,10 +71,10 @@ The following finite search defines correctness; implementations may optimize it
 - Greedily pack the longest sequence of complete blocks that fits. When the next block alone cannot fit with its feasible breadcrumb, use list-item, table-row, code-line, blockquote-child or paragraph boundaries as appropriate; an oversized smallest unit uses the code-point-safe token-budget search above. Exact Markdown validity is best effort, not a hard postcondition.
 - For a table continuation, insert its canonical header and delimiter as `context` before the continuing rows. The table's first header occurrence remains `source`; repeated headers do not count as overlap. Likewise tag any repeated code fences/list/quote wrappers as `context`, and count all generated text toward the maximum.
 - The first candidate of each run has zero overlap. If the run needs further candidates, overlap is a suffix of the previous candidate's **original canonical body interval**, excluding breadcrumb, repeated headers and all other context. It may include text previously marked overlap but must end exactly at cursor `p`; its start cannot precede the previous candidate's earliest mapped body character.
-- Enumerate natural suffix starts (block boundaries, or the finer structural boundaries used to split an oversized block) whose independently encoded suffix is at most `overlap_tokens`. Prefer the suffix with the greatest token count; ties use the earliest start offset. Zero overlap is always available. Within a token-fallback fragment, use code-point suffix starts instead. Do not cut an otherwise intact block merely to reach 100 tokens; actual overlap may be much smaller or zero.
+- Enumerate natural suffix starts (block boundaries, or the finer structural boundaries used to split an oversized block) whose independently encoded suffix is at most `overlap_tokens`. Prefer the suffix with the greatest token count; ties use the earliest start offset. Zero overlap is always available. Within a token-fallback fragment, use code-point suffix starts instead. Do not cut an otherwise intact block merely to reach 40 tokens; actual overlap may be much smaller or zero.
 - If overlap prevents the next complete unit from fitting, reduce it using that same ordering before fragmenting the unit. Once overlap is zero, split the oversized unit by the hierarchy above. Heading-prefix fallback follows the Unicode-safe algorithm: omit it only if it prevents **any** new character from fitting, not just because an intact block is large.
 - B uses code-point suffix starts with the same at-most-target ranking, without structural preferences or generated context. A always uses `s = p`. Neither strategy adds contextual headings.
-- `actual_overlap_tokens` is the independent encoding length of the canonical suffix `[s:p]`, zero when absent. It excludes all generated context; token counts of final candidates can differ from sums of their parts due to retokenization. Record a separate overlap part mapping `[s:p]`; newly consumed `[p:e]` is source. The requested 100 is a target, never a reason to exceed the maximum or stall.
+- `actual_overlap_tokens` is the independent encoding length of the canonical suffix `[s:p]`, zero when absent. It excludes all generated context; token counts of final candidates can differ from sums of their parts due to retokenization. Record a separate overlap part mapping `[s:p]`; newly consumed `[p:e]` is source. The requested 40 is a target, never a reason to exceed the maximum or stall.
 
 ### Canonical-content coverage contract
 
@@ -122,13 +122,13 @@ The following finite search defines correctness; implementations may optimize it
 
 - [ ] Implement A/B whole-stream token windows and C section/run-aware packing, explicit overlap accounting, every-candidate breadcrumbs and deterministic Unicode-safe fallback.
 - [ ] Add output-based quality validation and structured safe logging.
-- [ ] Add `python -m app.functions.chunk_handbook [path] --strategy {fixed,fixed_overlap,heading_aware} --max-tokens 500 --overlap-tokens N`. Default to the API-standards path used by `parse_handbook.py`, `heading_aware`, 500 tokens and strategy-specific overlap (0 for fixed, 100 otherwise); reject nonzero overlap for fixed. Display each ordinal, strategy, content verbatim, measured tokens, actual overlap, heading paths, source spans and prefix-omission flag. Print a clear zero-candidate message; invalid arguments/processing failures exit nonzero. Use stdout intentionally (`# noqa: T201`), not content-bearing logs; no file output or external services.
+- [ ] Add `python -m app.functions.chunk_handbook [path] --strategy {fixed,fixed_overlap,heading_aware} --max-tokens 200 --overlap-tokens N`. Default to the API-standards path used by `parse_handbook.py`, `heading_aware`, 200 tokens and strategy-specific overlap (0 for fixed, 40 otherwise); reject nonzero overlap for fixed. Display each ordinal, strategy, content verbatim, measured tokens, actual overlap, heading paths, source spans and prefix-omission flag. Print a clear zero-candidate message; invalid arguments/processing failures exit nonzero. Use stdout intentionally (`# noqa: T201`), not content-bearing logs; no file output or external services.
 - [ ] Run parser regression tests, chunker/serializer tests, Ruff, and tests over all 12 handbook topics.
 
 ## Acceptance Criteria
 
 - Each strategy consumes the existing `ParsedDocument` and returns the same `ChunkCandidate` shape in deterministic source order.
-- A defaults to 500 tokens with no overlap; B to 500/100; C to a 500 maximum with 100 overlap when splitting oversized content; all values are configurable.
+- A defaults to 200 tokens with no overlap; B to 200/40; C to a 200 maximum with 40 overlap when splitting oversized content; all values are configurable.
 - The serializer produces canonical Markdown representing supported AST semantics. A/B candidates are text windows and need not be independently valid Markdown; all candidates respect their configured token maximum.
 - A/B process one whole-document stream and do not inject missing heading context; C respects heading paths, contiguous runs, introduction ownership, and empty-section behavior as specified.
 - Candidate metadata includes token count, strategy, optional document path, heading paths and available source spans; source spans do not claim precision unsupported by parser nodes.
@@ -156,7 +156,7 @@ Use `app.core.logger.app_logger` structured events. Log safe configuration and s
 
 | Event | Level | Fields | Example |
 |---|---|---|---|
-| Chunk entry | `debug` | `strategy`, `max_tokens`, `overlap_tokens`, `section_count`, `block_types` | `{strategy: "fixed_overlap", max_tokens: 500, overlap_tokens: 100, section_count: 4, block_types: ["paragraph", "list", "table"]}` |
+| Chunk entry | `debug` | `strategy`, `max_tokens`, `overlap_tokens`, `section_count`, `block_types` | `{strategy: "fixed_overlap", max_tokens: 200, overlap_tokens: 40, section_count: 4, block_types: ["paragraph", "list", "table"]}` |
 | Chunk success | `debug` | `strategy`, candidate token counts, source spans, heading depths | `{strategy: "heading_aware", token_counts: [438, 291], source_spans: [[[3, 8]], [[10, 14]]], heading_depths: [2, 3]}` |
 | Invalid config | `warning` | `max_tokens`, `overlap_tokens`, `reason_code` | `{max_tokens: 500, overlap_tokens: 500, reason_code: "overlap_not_less_than_max"}` |
 | Chunk failure | `error` | `strategy`, `error_type`, `reason_code` | `{strategy: "heading_aware", error_type: "ChunkingError", reason_code: "token_budget_unrepresentable"}` |
@@ -179,7 +179,7 @@ Include safe per-candidate overlap/prefix diagnostics, e.g. `{ordinal: 2, actual
 - `tiktoken` encoding boundaries require care so token slicing does not corrupt Unicode or make reported counts disagree with emitted strings.
 - Exhaustive code-point endpoint search is a correctness reference and may be expensive for long runs. Bound work to the current stream/block unit where possible, cache exact counts, and preserve the specified result when optimizing; benchmark locally without adding retrieval evaluation.
 - A/B content can lack heading context when a window starts within a section; C provides the context-aware comparison, but retrieval effectiveness is explicitly not measured here.
-- The 500/100 profiles are initial baselines, not an empirically validated retrieval optimum.
+- The 200/40 profiles are initial baselines, not an empirically validated retrieval optimum.
 
 ## Out of Scope
 

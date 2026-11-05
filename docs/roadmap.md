@@ -12,8 +12,8 @@
 ## Phase 2 - Knowledge Ingestion
 
 7. Build Markdown parser &#9989;
-8. Build initial chunking strategy
-9. Generate embeddings
+8. Build initial chunking strategy &#9989;
+9. Generate embeddings &#9989;
 
 ## Phase 3 - Retrieval
 

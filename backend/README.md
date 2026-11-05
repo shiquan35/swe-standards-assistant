@@ -260,6 +260,56 @@ uv run pytest --cov --cov-report=html
 
 Test coverage reports are generated in the `htmlcov/` directory.
 
+### Handbook ingestion and stale-run recovery
+
+From the backend directory, run `uv run python -m app.functions.ingest_handbook --strategy heading_aware --max-tokens 200 --overlap-tokens 40`.
+Strategies are `fixed`, `fixed_overlap`, and `heading_aware`; `--max-tokens` defaults
+to 200, and `--overlap-tokens` defaults to 0 for `fixed`, 40 otherwise. The corpus
+is the fixed engineering-handbook directory under knowledge_base. Use a migrated
+PostgreSQL database with pgvector via `DB_FULL_CONNECTION_STRING`. The embedding
+model is fixed to `text-embedding-3-small` (1,536 dimensions); `OPENAI_API_KEY` is
+needed only for uncached embedding requests. Exact completed snapshots are no-ops;
+changed snapshots can reuse vectors from completed runs.
+
+A matching running run is refused. After confirming that its worker should be
+revoked, use `uv run python -m app.functions.recover_ingestion_run RUN_UUID --confirm`.
+Recovery locks the run, marks it failed, and clears its execution token; it does
+not ingest. Invoke normal ingestion again to retry with a fresh owner token.
+
+### Destructive PostgreSQL ingestion integration tests
+
+**Warning: use a dedicated disposable database only. Every test truncates all rows
+in public.knowledge_chunks, public.ingestion_run_documents,
+public.knowledge_documents, and public.ingestion_runs before and after the test.**
+Never point this suite at development, staging, production, or any shared database.
+There is deliberately no `TRUNCATE CASCADE`; unrelated tables are not cleanup targets.
+Stop other users/workers first. Do not run these tests with xdist: an advisory lock
+rejects overlapping suite instances against the same database, not arbitrary clients.
+
+The operator must provision PostgreSQL/pgvector and apply reviewed Alembic migrations
+**before** running the suite. Fixtures never run migrations, import Alembic's
+environment, create tables, or fall back to the application database URL. They read
+the single local head using `ScriptDirectory`, compare public.alembic_version,
+and inspect actual column types/nullability, keys, checks, and delete cascades
+before permitting cleanup. A head stamp alone is insufficient: missing model
+checks (including fingerprint length and running-token ownership) fail validation
+and require an operator-authored/applied migration.
+
+Set `TEST_DATABASE_URL` explicitly to the disposable PostgreSQL database using
+the PostgreSQL/psycopg2 driver, and separately set
+`TEST_DATABASE_ALLOW_DESTRUCTIVE=1` to acknowledge the deletion warning. Supply
+credentials securely; do not paste them into logs or use pytest's `--showlocals`.
+Without both opt-ins the tests skip before connecting. SQLite, other drivers, and
+PostgreSQL maintenance databases are rejected. All sessions use public, bounded
+connection/lock/statement timeouts, and the explicit test engine. Pipeline helpers
+commit, so rollback-only fixtures or a private test schema would not isolate them.
+HTTP/provider calls are blocked; prepared documents and embeddings are synthetic.
+
+Run `uv run pytest --confcutdir=tests/ingestion tests/ingestion/test_ingestion_postgres.py -q`.
+The `--confcutdir` option is required to exclude the application/SQLite fixtures in
+the parent test configuration. For safe discovery without any opt-ins, use the
+same invocation with `--collect-only`; no database or API is contacted.
+
 ## Code Quality
 
 The project uses Ruff for linting and formatting:

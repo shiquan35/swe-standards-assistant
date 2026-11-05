@@ -41,7 +41,7 @@ def _configuration(
         result = (
             ChunkingConfig(config.max_tokens, config.overlap_tokens)
             if config is not None
-            else ChunkingConfig(500, 0 if strategy == "fixed" else 100)
+            else ChunkingConfig(200, 0 if strategy == "fixed" else 40)
         )
         if strategy == "fixed" and result.overlap_tokens:
             raise ValueError("fixed_requires_zero_overlap")
@@ -673,18 +673,18 @@ class _Chunker:
 
 
 class FixedSizeChunker(_Chunker):
-    """Whole-document windows, default 500 tokens; nonzero overlap is invalid."""
+    """Whole-document windows, default 200 tokens; nonzero overlap is invalid."""
 
     strategy: ClassVar[ChunkStrategy] = "fixed"
 
 
 class FixedOverlapChunker(_Chunker):
-    """Whole-document windows with ranked character suffixes, default 500/100."""
+    """Whole-document windows with ranked character suffixes, default 200/40."""
 
     strategy: ClassVar[ChunkStrategy] = "fixed_overlap"
 
 
 class HeadingAwareChunker(_Chunker):
-    """Contiguous body runs, natural packing and generated context, default 500/100."""
+    """Contiguous body runs, natural packing and generated context, default 200/40."""
 
     strategy: ClassVar[ChunkStrategy] = "heading_aware"
