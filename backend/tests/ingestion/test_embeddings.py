@@ -11,7 +11,7 @@ from typing import Literal, cast
 import httpx
 import pytest
 import tiktoken
-from openai import OpenAI
+from openai import APIConnectionError, APIStatusError, APITimeoutError, OpenAI
 from openai.types import CreateEmbeddingResponse
 from pydantic import SecretStr, ValidationError
 from pydantic_settings.sources import DotEnvSettingsSource
@@ -132,6 +132,51 @@ def test_failure_logs_safe_reason_not_provider_body(caplog) -> None:
     assert "reason=request_failed" in caplog.text
     assert "PRIVATE_PROVIDER_BODY" not in caplog.text
     assert "PRIVATE_SOURCE_SENTINEL" not in caplog.text
+
+
+@pytest.mark.parametrize(
+    "status,code,reason",
+    [
+        (401, "invalid_api_key", "authentication_failed"),
+        (403, None, "permission_denied"),
+        (429, "insufficient_quota", "quota_exceeded"),
+        (429, "rate_limit_exceeded", "rate_limited"),
+        (400, "PRIVATE_PROVIDER_BODY", "invalid_request"),
+        (404, "model_not_found", "model_unavailable"),
+        (503, None, "provider_server_error"),
+    ],
+)
+def test_safe_provider_status_diagnostics(status, code, reason, caplog) -> None:
+    request = httpx.Request("POST", "https://example.invalid/embeddings")
+    error = APIStatusError(
+        "PRIVATE_PROVIDER_BODY",
+        response=httpx.Response(status, request=request),
+        body={"code": code, "message": "PRIVATE_PROVIDER_BODY"},
+    )
+    client = FakeClient()
+
+    def fail(_texts):
+        raise error
+
+    client.respond = fail
+    with caplog.at_level(logging.ERROR, logger=embeddings.__name__):
+        with pytest.raises(EmbeddingError, match=f"^{reason}$"):
+            EmbeddingService(client=client, tokenizer=FakeTokenizer()).embed_texts(
+                ["PRIVATE_SOURCE_SENTINEL"]
+            )
+    assert f"status_code={status}" in caplog.text
+    assert f"reason={reason}" in caplog.text
+    assert "PRIVATE_PROVIDER_BODY" not in caplog.text
+    assert "PRIVATE_SOURCE_SENTINEL" not in caplog.text
+
+
+@pytest.mark.parametrize(
+    "error_type,reason",
+    [(APIConnectionError, "connection_failed"), (APITimeoutError, "request_timeout")],
+)
+def test_connection_failure_classification(error_type, reason) -> None:
+    error = error_type(request=httpx.Request("POST", "https://example.invalid"))
+    assert embeddings._request_failure(error) == (reason, None, None)
 
 
 @pytest.mark.parametrize(
@@ -457,7 +502,7 @@ def test_sdk_retry_exhaustion_offline(
         timeout=30.0,
         http_client=httpx.Client(transport=httpx.MockTransport(transport)),
     ) as client:
-        with pytest.raises(EmbeddingError, match="^request_failed$") as caught:
+        with pytest.raises(EmbeddingError, match="^rate_limited$") as caught:
             EmbeddingService(client=client, tokenizer=FakeTokenizer()).embed_texts(
                 [secret]
             )

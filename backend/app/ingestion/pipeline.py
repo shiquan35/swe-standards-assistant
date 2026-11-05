@@ -19,6 +19,7 @@ from app.ingestion.embeddings import (
     EMBEDDING_DIMENSIONS,
     EMBEDDING_MODEL,
     MAX_INPUT_TOKENS,
+    EmbeddingError,
     EmbeddingService,
 )
 from app.ingestion.markdown_parser import parse_markdown
@@ -378,6 +379,8 @@ def ingest_handbook(
                 app_logger.error("ingestion_failure_status_unavailable")
         if isinstance(error, IngestionError):
             raise
+        if isinstance(error, EmbeddingError):
+            raise IngestionError(error.reason_code, run_id) from None
         raise IngestionError("ingestion_failed", run_id) from None
 
 

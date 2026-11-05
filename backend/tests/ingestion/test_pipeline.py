@@ -653,6 +653,17 @@ def test_ingest_failure_fails_only_a_claimed_owner_and_hides_internal_messages(
     assert "PRIVATE" not in str(pipeline.app_logger.mock_calls)
 
 
+def test_embedding_failure_reason_reaches_cli_with_run_id(pipeline, orchestration):
+    state = orchestration
+    state.embedder.embed_texts.side_effect = pipeline.EmbeddingError("quota_exceeded")
+    with pytest.raises(pipeline.IngestionError, match="^quota_exceeded$") as caught:
+        state.ingest()
+    assert caught.value.run_id == state.run_id
+    assert caught.value.__suppress_context__
+    state.fail.assert_called_once_with(state.session, state.run_id, state.token)
+    state.publish.assert_not_called()
+
+
 @pytest.mark.parametrize("reason", ["run_already_running", "invalid_run_status"])
 def test_claim_rejection_is_preserved_without_failing_another_owner(
     pipeline, orchestration, reason

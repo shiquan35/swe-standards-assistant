@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import Literal, Protocol
 
-from openai import OpenAI
+from openai import APIConnectionError, APIStatusError, APITimeoutError, OpenAI
 from openai.types import CreateEmbeddingResponse
 from pydantic import SecretStr
 
@@ -61,6 +61,43 @@ class EmbeddingError(ValueError):
     def __init__(self, reason_code: str) -> None:
         self.reason_code = reason_code
         super().__init__(reason_code)
+
+
+def _request_failure(error: Exception) -> tuple[str, int | None, str | None]:
+    """Classify SDK failures without retaining messages, bodies, or headers."""
+    if isinstance(error, APITimeoutError):
+        return "request_timeout", None, None
+    if isinstance(error, APIConnectionError):
+        return "connection_failed", None, None
+    if isinstance(error, APIStatusError):
+        status = error.status_code
+        # Provider codes are untrusted strings: emit only known literal codes.
+        code = (
+            error.code
+            if error.code
+            in (
+                "insufficient_quota",
+                "rate_limit_exceeded",
+                "invalid_api_key",
+                "model_not_found",
+                "billing_hard_limit_reached",
+            )
+            else None
+        )
+        if code in {"insufficient_quota", "billing_hard_limit_reached"}:
+            reason = "quota_exceeded"
+        else:
+            reason = {
+                400: "invalid_request",
+                401: "authentication_failed",
+                403: "permission_denied",
+                404: "model_unavailable",
+                429: "rate_limited",
+            }.get(
+                status, "provider_server_error" if status >= 500 else "request_failed"
+            )
+        return reason, status, code
+    return "request_failed", None, None
 
 
 class EmbeddingsEndpoint(Protocol):
@@ -188,14 +225,18 @@ class EmbeddingService:
                     dimensions=EMBEDDING_DIMENSIONS,
                     encoding_format="float",
                 )
-        except Exception:
+        except Exception as error:
             # Do not log or chain SDK failures: messages can contain input/keys.
+            reason, status, code = _request_failure(error)
             logger.error(
-                "embedding_batch_failed model=%s inputs=%d reason=request_failed",
+                "embedding_batch_failed model=%s inputs=%d reason=%s status_code=%s error_code=%s",
                 EMBEDDING_MODEL,
                 len(texts),
+                reason,
+                status,
+                code,
             )
-            raise EmbeddingError("request_failed") from None
+            raise EmbeddingError(reason) from None
         try:
             vectors = self._validate_response(response, len(texts))
         except EmbeddingError:
