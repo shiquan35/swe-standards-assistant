@@ -25,7 +25,7 @@
 | Choice | Stale workers | Recovery is a separate operation: after operator confirmation, lock the specified run, recheck `running`, mark it `failed`, and clear its token. A later normal ingestion invocation claims the failed run with a fresh token. | Keeps recovery separate from ingestion and fences the old owner before retry. |
 | Choice | Current document metadata | `KnowledgeDocument.content_hash` and title represent the last successfully published run for that path, not necessarily current filesystem state. Historical source hashes are authoritative in `ingestion_run_documents`. | Concurrent snapshots may commit out of filesystem order; each run must retain its own provenance. |
 | Choice | Embedding requests | Batch sequentially within the API's 2,048-input and 300,000-total-token limits; use bounded OpenAI SDK retries and fail after retries are exhausted. Reject an input above 8,192 tokens; never truncate/split. | Simple rate-limit behavior and exact chunk-to-vector correspondence. |
-| Choice | CLI configuration | Require `--strategy`; default max tokens to 500 and overlap to 0 for `fixed`, 100 otherwise. Preserve existing validation, including zero overlap for `fixed`. | Matches current chunk-inspection behavior while making each run's strategy explicit. |
+| Choice | CLI configuration | Require `--strategy`; default max tokens to 200 and overlap to 0 for `fixed`, 40 otherwise. Preserve existing validation, including zero overlap for `fixed`. | Matches current chunk-inspection behavior while making each run's strategy explicit. |
 | Choice | Logging/testing | Log run and per-file progress without text, vectors, or credentials. Mock OpenAI in unit tests; use PostgreSQL integration tests. | Useful progress without exposing source content; exercises pgvector/JSONB behavior. |
 
 ## Architecture
@@ -93,8 +93,8 @@ For each `CapturedSource`, derive `content_hash` from `raw_bytes`, decode those 
 ## Validation Rules
 
 - `--strategy`: required; one of `fixed`, `fixed_overlap`, `heading_aware`.
-- `max_tokens`: positive integer, at most 8,192; default 500.
-- `overlap_tokens`: nonnegative and less than `max_tokens`; `fixed` requires 0. Default 0 for `fixed`, 100 otherwise.
+- `max_tokens`: positive integer, at most 8,192; default 200.
+- `overlap_tokens`: nonnegative and less than `max_tokens`; `fixed` requires 0. Default 0 for `fixed`, 40 otherwise.
 - Every embedding input: non-empty and at most 8,192 `cl100k_base` tokens; each request has at most 2,048 inputs and 300,000 aggregate tokens ([OpenAI embeddings API](https://developers.openai.com/api/reference/resources/embeddings/methods/create)). Reject invalid dimensions/counts from the API.
 - Source root: fixed at `backend/knowledge_base/engineering-handbook`, resolved relative to the CLI module; recursive `.md` files only, sorted by repository-relative POSIX path. Empty discovery is an error and creates no run.
 - `OPENAI_EMBEDDING_MODEL`: must be `text-embedding-3-small`; API key is required only when an uncached embedding request is made.
@@ -168,13 +168,13 @@ For each `CapturedSource`, derive `content_hash` from `raw_bytes`, decode those 
 
 | Event | Level | Fields | Example |
 |---|---|---|---|
-| CLI started | `info` | `invocation_id`, `source_root`, `strategy`, `max_tokens`, `overlap_tokens`, `model` | `{invocation_id: "8c41…", source_root: "knowledge_base/engineering-handbook", strategy: "heading_aware", max_tokens: 500, overlap_tokens: 100, model: "text-embedding-3-small"}` |
+| CLI started | `info` | `invocation_id`, `source_root`, `strategy`, `max_tokens`, `overlap_tokens`, `model` | `{invocation_id: "8c41…", source_root: "knowledge_base/engineering-handbook", strategy: "heading_aware", max_tokens: 200, overlap_tokens: 40, model: "text-embedding-3-small"}` |
 | File chunked | `info` | `invocation_id`, `file_path`, `source_hash`, `candidate_count`, `token_total` | `{invocation_id: "8c41…", file_path: "knowledge_base/engineering-handbook/api-standards.md", source_hash: "a93f…", candidate_count: 4, token_total: 1520}` |
 | Embedding batch | `debug` | `run_id`, `batch_index`, `model`, `input_count`, `input_tokens`, `dimensions`, `duration_ms` | `{run_id: "6d2b…", batch_index: 1, model: "text-embedding-3-small", input_count: 46, input_tokens: 21240, dimensions: 1536, duration_ms: 820}` |
 | Embedding failure | `error` | `run_id`, `model`, `status_code`, `error_code`, `request_id`, `retry_count` | `{run_id: "6d2b…", model: "text-embedding-3-small", status_code: 429, error_code: "rate_limit_exceeded", request_id: "req_…", retry_count: 2}` |
 | Snapshot published | `info` | `run_id`, `snapshot_fingerprint`, `status`, `documents`, `chunks`, `cache_hits`, `api_inputs` | `{run_id: "6d2b…", snapshot_fingerprint: "2b7e…", status: "completed", documents: 12, chunks: 46, cache_hits: 8, api_inputs: 38}` |
 | Ownership rejected | `warn` | `run_id`, `operation`, `reason`, `status` | `{run_id: "6d2b…", operation: "publish_snapshot", reason: "execution_token_mismatch", status: "running"}` |
-| Function entry/exit | `debug` | `function`, safe arguments/result, `duration_ms`, `invocation_id` | `{function: "ingest_handbook", args: {strategy: "fixed_overlap", max_tokens: 500, overlap_tokens: 100}, result: {status: "completed", run_id: "6d2b…"}, duration_ms: 12940, invocation_id: "8c41…"}` |
+| Function entry/exit | `debug` | `function`, safe arguments/result, `duration_ms`, `invocation_id` | `{function: "ingest_handbook", args: {strategy: "fixed_overlap", max_tokens: 200, overlap_tokens: 40}, result: {status: "completed", run_id: "6d2b…"}, duration_ms: 12940, invocation_id: "8c41…"}` |
 | Database operation | `debug` | operation name, `run_id`, safe IDs/fingerprint, transaction outcome, row counts | `{operation: "publish_snapshot", run_id: "6d2b…", document_id: "f080…", chunk_index: 3, outcome: "committed", affected_rows: 1}` |
 
 Never log chunk text, embedding vectors, API keys, or bound DB values containing text/vector data. Log safe identifiers and shapes instead; do not emit raw exception/request bodies if they can contain source content.

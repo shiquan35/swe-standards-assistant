@@ -232,7 +232,7 @@ def test_defaults_and_protocol(strategy: ChunkStrategy) -> None:
         "heading_aware": HeadingAwareChunker(),
     }
     document = document_with_body("word " * 180)
-    config = ChunkingConfig(500, 0 if strategy == "fixed" else 100)
+    config = ChunkingConfig(200, 0 if strategy == "fixed" else 40)
     tokenizer = Characters()
     expected = chunk_document(document, strategy, config, tokenizer)
     assert chunk_document(document, strategy, tokenizer=tokenizer) == expected

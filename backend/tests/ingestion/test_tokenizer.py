@@ -62,7 +62,7 @@ def test_config_rejects_invalid_runtime_types(maximum: object, overlap: object) 
 
 
 def test_config_defaults_and_dataclass_contracts() -> None:
-    assert asdict(ChunkingConfig()) == {"max_tokens": 500, "overlap_tokens": 100}
+    assert asdict(ChunkingConfig()) == {"max_tokens": 200, "overlap_tokens": 40}
     assert ChunkingConfig(1, 0).max_tokens == 1
     source = ChunkPart(0, 3, "source", 10, 13)
     context = ChunkPart(3, 5, "context", context_kind="markdown_wrapper")

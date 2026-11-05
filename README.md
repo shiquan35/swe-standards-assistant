@@ -69,28 +69,34 @@ Shortest document is `engineering-exceptions.md` with 49 lines and 367 tokens.
 Defaults:
 - performs chunking on `api-standards.md`
   - update DEFAULT_PATH in `chunk_handbook.py` 
-- heading-aware strategy
+- heading-aware strategy: 200 tokens + 40 overlap
 ```
 uv run python -m app.functions.chunk_handbook
 ```
+```
+uv run python -m app.functions.chunk_handbook --max-tokens 200 --overlap-tokens 40
+```
 
-500 tokens:
+200 tokens, no overlap:
 ```
 uv run python -m app.functions.chunk_handbook --strategy fixed
 ```
+```
+uv run python -m app.functions.chunk_handbook --strategy fixed --max-tokens 200 --overlap-tokens 0
+```
 
-500 tokens + 100 overlap:
+200 tokens + 40 overlap:
 ```
 uv run python -m app.functions.chunk_handbook --strategy fixed_overlap
+```
+```
+uv run python -m app.functions.chunk_handbook --strategy fixed_overlap --max-tokens 200 --overlap-tokens 40
 ```
 
 custom tokens and overlap:
 ```
-uv run python -m app.functions.chunk_handbook --strategy fixed_overlap --max-tokens 400 --overlap-tokens 80
+uv run python -m app.functions.chunk_handbook --strategy fixed_overlap --max-tokens 150 --overlap-tokens 30
 ```
 ```
-uv run python -m app.functions.chunk_handbook \
-  --strategy heading_aware \
-  --max-tokens 100 \
-  --overlap-tokens 20
+uv run python -m app.functions.chunk_handbook --strategy heading_aware --max-tokens 100 --overlap-tokens 20
 ```

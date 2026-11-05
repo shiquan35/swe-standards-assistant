@@ -32,18 +32,18 @@ def main(argv: Sequence[str] | None = None) -> int:
         choices=("fixed", "fixed_overlap", "heading_aware"),
         default="heading_aware",
     )
-    parser.add_argument("--max-tokens", type=int, default=500)
+    parser.add_argument("--max-tokens", type=int, default=200)
     parser.add_argument(
         "--overlap-tokens",
         type=int,
         default=None,
-        help="Overlap target (default: 0 for fixed, 100 otherwise).",
+        help="Overlap target (default: 0 for fixed, 40 otherwise).",
     )
     args = parser.parse_args(argv)
     strategy: ChunkStrategy = args.strategy
     overlap = args.overlap_tokens
     if overlap is None:
-        overlap = 0 if strategy == "fixed" else 100
+        overlap = 0 if strategy == "fixed" else 40
     try:
         config = ChunkingConfig(args.max_tokens, overlap)
         if strategy == "fixed" and overlap != 0:
@@ -84,9 +84,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                 [[span.start_line, span.end_line] for span in candidate.source_spans]
             )
         )
-        print(
+        print(  # noqa: T201
             f"Heading prefix omitted: {candidate.heading_prefix_omitted}"
-        )  # noqa: T201
+        )
         print("Content:")  # noqa: T201
         print(candidate.content)  # noqa: T201
         print()  # noqa: T201

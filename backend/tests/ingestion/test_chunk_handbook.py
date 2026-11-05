@@ -41,11 +41,11 @@ def test_full_content_and_every_metadata_field(
     override: bool,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    maximum = 45 if override else 500
+    maximum = 45 if override else 200
     overlap = (
         (0 if strategy == "fixed" else 8)
         if override
-        else (0 if strategy == "fixed" else 100)
+        else (0 if strategy == "fixed" else 40)
     )
     args = [str(topic), "--strategy", strategy]
     if override:
@@ -92,13 +92,13 @@ def test_default_path_matches_parse_handbook_and_default_profile(
     assert chunk_handbook.main([]) == 0
     parse.assert_called_once_with(existing_parser.call_args.args[0])
     chunk.assert_called_once_with(
-        parse.return_value, "heading_aware", ChunkingConfig(500, 100)
+        parse.return_value, "heading_aware", ChunkingConfig(200, 40)
     )
     assert capsys.readouterr().out == "No chunk candidates produced.\n"
 
 
 @pytest.mark.parametrize(
-    "strategy,overlap", [("fixed", 0), ("fixed_overlap", 100), ("heading_aware", 100)]
+    "strategy,overlap", [("fixed", 0), ("fixed_overlap", 40), ("heading_aware", 40)]
 )
 def test_strategy_specific_default_overlap(
     strategy: ChunkStrategy, overlap: int, monkeypatch: pytest.MonkeyPatch
@@ -110,7 +110,7 @@ def test_strategy_specific_default_overlap(
     chunk = Mock(return_value=[])
     monkeypatch.setattr(chunk_handbook, "chunk_document", chunk)
     assert chunk_handbook.main(["--strategy", strategy]) == 0
-    chunk.assert_called_once_with(document, strategy, ChunkingConfig(500, overlap))
+    chunk.assert_called_once_with(document, strategy, ChunkingConfig(200, overlap))
 
 
 @pytest.mark.parametrize(
@@ -125,7 +125,7 @@ def test_strategy_specific_default_overlap(
         ["--overlap-tokens", "500"],
         ["--overlap-tokens", "501"],
         ["--strategy", "fixed", "--overlap-tokens", "1"],
-        ["--max-tokens", "50"],
+        ["--max-tokens", "40"],
         ["--unknown-option"],
     ],
 )

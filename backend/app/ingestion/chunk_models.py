@@ -20,8 +20,8 @@ class ChunkingError(ValueError):
 
 @dataclass
 class ChunkingConfig:
-    max_tokens: int = 500
-    overlap_tokens: int = 100
+    max_tokens: int = 200
+    overlap_tokens: int = 40
 
     def __post_init__(self) -> None:
         if type(self.max_tokens) is not int or self.max_tokens <= 0:

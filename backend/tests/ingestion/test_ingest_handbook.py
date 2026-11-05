@@ -60,7 +60,7 @@ def runtime(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
 
 @pytest.mark.parametrize(
     "strategy,overlap",
-    [("fixed", 0), ("fixed_overlap", 100), ("heading_aware", 100)],
+    [("fixed", 0), ("fixed_overlap", 40), ("heading_aware", 40)],
 )
 def test_defaults_and_fixed_root(
     strategy: str,
@@ -78,7 +78,7 @@ def test_defaults_and_fixed_root(
         session=runtime.session,
         source_root=cli.DEFAULT_ROOT,
         strategy=strategy,
-        config=SimpleNamespace(max_tokens=500, overlap_tokens=overlap),
+        config=SimpleNamespace(max_tokens=200, overlap_tokens=overlap),
         embedder=runtime.embedder,
     )
     captured = capsys.readouterr()
@@ -128,7 +128,7 @@ def test_explicit_limits(strategy: str, runtime: SimpleNamespace) -> None:
         ["--strategy", "fixed_overlap", "--overlap-tokens", "500"],
         ["--strategy", "heading_aware", "--overlap-tokens", "501"],
         ["--strategy", "heading_aware", "--overlap-tokens", "1.5"],
-        ["--strategy", "heading_aware", "--max-tokens", "50"],
+        ["--strategy", "heading_aware", "--max-tokens", "40"],
         ["--strategy", "fixed", "--source-root", "/arbitrary"],
     ],
 )

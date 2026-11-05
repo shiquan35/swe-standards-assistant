@@ -71,18 +71,18 @@ def main(argv: Sequence[str] | None = None) -> int:
         required=True,
         choices=("fixed", "fixed_overlap", "heading_aware"),
     )
-    parser.add_argument("--max-tokens", type=int, default=500)
+    parser.add_argument("--max-tokens", type=int, default=200)
     parser.add_argument(
         "--overlap-tokens",
         type=int,
         default=None,
-        help="Overlap target (default: 0 for fixed, 100 otherwise).",
+        help="Overlap target (default: 0 for fixed, 40 otherwise).",
     )
     args = parser.parse_args(argv)
     strategy: ChunkStrategy = args.strategy
     overlap = args.overlap_tokens
     if overlap is None:
-        overlap = 0 if strategy == "fixed" else 100
+        overlap = 0 if strategy == "fixed" else 40
     if args.max_tokens <= 0 or overlap < 0 or overlap >= args.max_tokens:
         parser.error("invalid token budget configuration")
     if args.max_tokens > MAX_INPUT_TOKENS:

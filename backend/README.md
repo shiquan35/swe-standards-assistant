@@ -262,9 +262,9 @@ Test coverage reports are generated in the `htmlcov/` directory.
 
 ### Handbook ingestion and stale-run recovery
 
-From the backend directory, run `uv run python -m app.functions.ingest_handbook --strategy heading_aware`.
+From the backend directory, run `uv run python -m app.functions.ingest_handbook --strategy heading_aware --max-tokens 200 --overlap-tokens 40`.
 Strategies are `fixed`, `fixed_overlap`, and `heading_aware`; `--max-tokens` defaults
-to 500, and `--overlap-tokens` defaults to 0 for `fixed`, 100 otherwise. The corpus
+to 200, and `--overlap-tokens` defaults to 0 for `fixed`, 40 otherwise. The corpus
 is the fixed engineering-handbook directory under knowledge_base. Use a migrated
 PostgreSQL database with pgvector via `DB_FULL_CONNECTION_STRING`. The embedding
 model is fixed to `text-embedding-3-small` (1,536 dimensions); `OPENAI_API_KEY` is
