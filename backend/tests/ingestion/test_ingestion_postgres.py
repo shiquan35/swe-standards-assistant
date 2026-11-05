@@ -55,9 +55,9 @@ def _assert_migrated_schema(connection):
     heads = ScriptDirectory(str(BACKEND / "alembic")).get_heads()
     assert len(heads) == 1, "Operator must resolve local Alembic heads first"
     catalog = inspect(connection)
-    assert catalog.has_table("alembic_version", schema="public"), (
-        "Operator must migrate the disposable database first"
-    )
+    assert catalog.has_table(
+        "alembic_version", schema="public"
+    ), "Operator must migrate the disposable database first"
     versions = (
         connection.execute(text("SELECT version_num FROM public.alembic_version"))
         .scalars()
@@ -95,9 +95,9 @@ def _assert_migrated_schema(connection):
         }
         for constraint in table.constraints:
             if constraint.__class__.__name__ == "CheckConstraint":
-                assert constraint.name in checks, (
-                    f"Missing migrated check: {constraint.name}; operator migration required"
-                )
+                assert (
+                    constraint.name in checks
+                ), f"Missing migrated check: {constraint.name}; operator migration required"
                 assert checks[constraint.name]
             elif constraint.__class__.__name__ == "UniqueConstraint":
                 expected = [column.name for column in constraint.columns]
@@ -707,9 +707,7 @@ def test_database_enforces_constraints(db, pipeline, monkeypatch, case, sqlstate
             ingestion_run_id=(
                 None
                 if case == "chunk_run_nonnull"
-                else uuid4()
-                if case == "chunk_run_fk"
-                else result.run_id
+                else uuid4() if case == "chunk_run_fk" else result.run_id
             ),
             chunk_index=(
                 -1 if case == "chunk_index" else 0 if case == "chunk_unique" else 1

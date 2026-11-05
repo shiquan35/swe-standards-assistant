@@ -1,10 +1,10 @@
 """Exact cosine retrieval over completed handbook ingestion snapshots."""
 
 import math
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from time import perf_counter
-from typing import cast
+from typing import Any, TypeGuard, cast
 from uuid import UUID
 
 from sqlalchemy import Select
@@ -82,7 +82,10 @@ def _resolve_run(
                         IngestionRun.strategy == strategy,
                         IngestionRun.status == "completed",
                     )
-                    .order_by(IngestionRun.created_at.desc(), IngestionRun.id.asc())
+                    .order_by(
+                        cast(Any, IngestionRun.created_at).desc(),
+                        cast(Any, IngestionRun.id).asc(),
+                    )
                     .limit(1)
                 ).one_or_none()
             if run is None:
@@ -152,7 +155,7 @@ def _validate_query_vector(vectors: object) -> list[float]:
     return normalized
 
 
-def _positive_metadata_integer(value: object) -> bool:
+def _positive_metadata_integer(value: object) -> TypeGuard[int]:
     return type(value) is int and value > 0
 
 
@@ -180,11 +183,11 @@ def _chunk_metadata(metadata: object) -> tuple[int, list[list[str]], list[list[i
             raise RetrievalError("invalid_chunk_metadata")
         start_line = span.get("start_line")
         end_line = span.get("end_line")
-        if (
-            not _positive_metadata_integer(start_line)
-            or not _positive_metadata_integer(end_line)
-            or start_line > end_line
+        if not _positive_metadata_integer(start_line) or not _positive_metadata_integer(
+            end_line
         ):
+            raise RetrievalError("invalid_chunk_metadata")
+        if start_line > end_line:
             raise RetrievalError("invalid_chunk_metadata")
         spans.append([start_line, end_line])
     return tokens, [list(path) for path in heading_paths], spans
@@ -192,29 +195,30 @@ def _chunk_metadata(metadata: object) -> tuple[int, list[list[str]], list[list[i
 
 def _search_statement(
     *, strategy: ChunkStrategy, run_id: UUID, vector: list[float], top_k: int
-) -> Select:
-    distance = KnowledgeChunk.embedding.cosine_distance(vector)
+) -> Select[Any]:
+    distance = cast(Any, KnowledgeChunk.embedding).cosine_distance(vector)
+    select_query = cast(Callable[..., Select[Any]], select)
     return (
-        select(
-            KnowledgeChunk.id,
-            KnowledgeChunk.document_id,
-            KnowledgeChunk.content,
+        select_query(
+            cast(Any, KnowledgeChunk.id),
+            cast(Any, KnowledgeChunk.document_id),
+            cast(Any, KnowledgeChunk.content),
             distance.label("cosine_distance"),
-            KnowledgeChunk.metadata_,
-            KnowledgeDocument.file_path,
-            KnowledgeDocument.title,
+            cast(Any, KnowledgeChunk.metadata_),
+            cast(Any, KnowledgeDocument.file_path),
+            cast(Any, KnowledgeDocument.title),
         )
         .join(KnowledgeDocument)
         .join(IngestionRun)
         .where(
-            IngestionRun.id == run_id,
-            IngestionRun.strategy == strategy,
-            IngestionRun.status == "completed",
-            IngestionRun.embedding_model == EMBEDDING_MODEL,
-            KnowledgeChunk.ingestion_run_id == run_id,
-            KnowledgeChunk.embedding.is_not(None),
+            cast(Any, IngestionRun.id) == run_id,
+            cast(Any, IngestionRun.strategy) == strategy,
+            cast(Any, IngestionRun.status) == "completed",
+            cast(Any, IngestionRun.embedding_model) == EMBEDDING_MODEL,
+            cast(Any, KnowledgeChunk.ingestion_run_id) == run_id,
+            cast(Any, KnowledgeChunk.embedding).is_not(None),
         )
-        .order_by(distance.asc(), KnowledgeChunk.id.asc())
+        .order_by(distance.asc(), cast(Any, KnowledgeChunk.id).asc())
         .limit(top_k)
     )
 
@@ -308,7 +312,7 @@ def retrieve_chunks(
             top_k=top_k,
         )
         with session.no_autoflush:
-            rows = session.exec(statement).all()
+            rows = session.exec(cast(Any, statement)).all()
     except Exception:
         app_logger.error(
             "retrieval_failed operation=vector_search strategy={} run_id={} reason=database_error duration_ms={:.2f}",
