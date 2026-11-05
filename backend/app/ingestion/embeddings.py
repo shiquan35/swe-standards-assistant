@@ -2,13 +2,20 @@
 
 import logging
 import math
+import ssl
 import time
 from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import Literal, Protocol
 
-from openai import APIConnectionError, APIStatusError, APITimeoutError, OpenAI
+from openai import (
+    APIConnectionError,
+    APIStatusError,
+    APITimeoutError,
+    DefaultHttpxClient,
+    OpenAI,
+)
 from openai.types import CreateEmbeddingResponse
 from pydantic import SecretStr
 
@@ -197,11 +204,22 @@ class EmbeddingService:
                 raise EmbeddingError("missing_api_key")
             try:
                 with _without_provider_logs():
-                    self._client = OpenAI(
-                        api_key=key.get_secret_value(),
-                        max_retries=SDK_MAX_RETRIES,
-                        timeout=SDK_TIMEOUT_SECONDS,
+                    # Use Python's configured default CA store, which can include
+                    # approved network inspection roots absent from certifi.
+                    # Hostname and certificate verification remain mandatory.
+                    http_client = DefaultHttpxClient(
+                        verify=ssl.create_default_context()
                     )
+                    try:
+                        self._client = OpenAI(
+                            api_key=key.get_secret_value(),
+                            max_retries=SDK_MAX_RETRIES,
+                            timeout=SDK_TIMEOUT_SECONDS,
+                            http_client=http_client,
+                        )
+                    except Exception:
+                        http_client.close()
+                        raise
             except Exception:
                 raise EmbeddingError("client_initialization_failed") from None
         return self._client

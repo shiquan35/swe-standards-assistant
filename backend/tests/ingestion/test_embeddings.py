@@ -3,10 +3,12 @@
 import importlib
 import logging
 import socket
+import ssl
 import traceback
 from collections.abc import Callable, Iterator
 from types import SimpleNamespace
 from typing import Literal, cast
+from unittest.mock import Mock
 
 import httpx
 import pytest
@@ -426,6 +428,9 @@ def test_lazy_default_client_configuration_and_reuse(
 ) -> None:
     client = FakeClient()
     calls: list[dict[str, object]] = []
+    transport = Mock()
+    transport_factory = Mock(return_value=transport)
+    monkeypatch.setattr(embeddings, "DefaultHttpxClient", transport_factory)
 
     def factory(**kwargs: object) -> FakeClient:
         calls.append(kwargs)
@@ -438,7 +443,19 @@ def test_lazy_default_client_configuration_and_reuse(
     assert calls == []
     service.embed_texts(["a"])
     service.embed_texts(["b"])
-    assert calls == [{"api_key": "private-key", "max_retries": 2, "timeout": 30.0}]
+    assert calls == [
+        {
+            "api_key": "private-key",
+            "max_retries": 2,
+            "timeout": 30.0,
+            "http_client": transport,
+        }
+    ]
+    transport_factory.assert_called_once()
+    context = transport_factory.call_args.kwargs["verify"]
+    assert isinstance(context, ssl.SSLContext)
+    assert context.verify_mode == ssl.CERT_REQUIRED
+    assert context.check_hostname
 
 
 @pytest.mark.parametrize("key", [None, SecretStr(""), SecretStr("  ")])
