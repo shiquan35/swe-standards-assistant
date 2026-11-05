@@ -94,7 +94,7 @@ list[RetrievalResult], ranks 1..k (never commit, roll back, or close Session)
 ### Phase 2: PostgreSQL verification and retrieval cases
 | File | What changes |
 |---|---|
-| `backend/tests/ingestion/test_retrieval_postgres.py` | Add guarded PostgreSQL/pgvector tests for operator semantics, exact ordering, strategy/run filtering, null-vector exclusion and joins |
+| `backend/tests/ingestion/test_ingestion_postgres.py` | Extend the existing guarded PostgreSQL/pgvector suite with retrieval operator semantics, exact ordering, strategy/run filtering, null-vector exclusion and joins |
 | `backend/tests/ingestion/test_retrieval.py` | Add deterministic fixtures for representative semantic and multi-section handbook queries |
 
 - [ ] Verify raw cosine score conversion, stable UUID tie ordering, result provenance and metadata validation against PostgreSQL.
@@ -133,6 +133,7 @@ Never log raw questions, embeddings, chunk content, headings, metadata payloads,
 | Retrieval entry | `debug` | `strategy`, `top_k`, `ingestion_run_id`, `question_chars`, `embedding_model` | `{function: "retrieve_chunks", strategy: "heading_aware", top_k: 5, ingestion_run_id: null, question_chars: 48, embedding_model: "text-embedding-3-small"}` |
 | Run selected | `debug` | `strategy`, `run_id`, `created_at`, `selection` | `{strategy: "fixed_overlap", run_id: "8b7d…", created_at: "2026-11-04T10:20:00Z", selection: "latest_completed"}` |
 | Vector query | `debug` | query/operator name, `run_id`, `strategy`, `top_k`, `embedding_dimensions`, `duration_ms` | `{operation: "exact_cosine_search", operator: "cosine_distance", run_id: "8b7d…", strategy: "heading_aware", top_k: 5, embedding_dimensions: 1536, duration_ms: 12.4}` |
+| Embedding failure | `error` | `model`, safe `reason_code`, `duration_ms` | `{model: "text-embedding-3-small", reason_code: "invalid_query_vector", duration_ms: 4.1}` |
 | Search completed | `debug` | `run_id`, `strategy`, `top_k`, result IDs/ranks/scores, `duration_ms` | `{run_id: "8b7d…", strategy: "fixed_overlap", top_k: 5, results: [{chunk_id: "a102…", rank: 1, similarity_score: 0.842}], duration_ms: 12.4}` |
 | Retrieval returned | `debug` | `run_id`, `result_count`, safe result IDs/ranks, `duration_ms` | `{function: "retrieve_chunks", run_id: "8b7d…", result_count: 2, results: [{chunk_id: "a102…", rank: 1}, {chunk_id: "4c11…", rank: 2}], duration_ms: 93.1}` |
 | Validation/run/data failure | `warning` or `error` | safe `reason_code`, `strategy`, `run_id` if available | `{function: "retrieve_chunks", reason_code: "invalid_chunk_metadata", strategy: "fixed", ingestion_run_id: "8b7d…"}` |

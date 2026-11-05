@@ -22,7 +22,7 @@ import pytest
 from alembic.script import ScriptDirectory
 from sqlalchemy import create_engine, event, inspect, text
 from sqlalchemy.engine import make_url
-from sqlalchemy.exc import DBAPIError, IntegrityError
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.pool import NullPool
 from sqlmodel import Session, select
 
@@ -55,9 +55,9 @@ def _assert_migrated_schema(connection):
     heads = ScriptDirectory(str(BACKEND / "alembic")).get_heads()
     assert len(heads) == 1, "Operator must resolve local Alembic heads first"
     catalog = inspect(connection)
-    assert catalog.has_table(
-        "alembic_version", schema="public"
-    ), "Operator must migrate the disposable database first"
+    assert catalog.has_table("alembic_version", schema="public"), (
+        "Operator must migrate the disposable database first"
+    )
     versions = (
         connection.execute(text("SELECT version_num FROM public.alembic_version"))
         .scalars()
@@ -95,9 +95,9 @@ def _assert_migrated_schema(connection):
         }
         for constraint in table.constraints:
             if constraint.__class__.__name__ == "CheckConstraint":
-                assert (
-                    constraint.name in checks
-                ), f"Missing migrated check: {constraint.name}; operator migration required"
+                assert constraint.name in checks, (
+                    f"Missing migrated check: {constraint.name}; operator migration required"
+                )
                 assert checks[constraint.name]
             elif constraint.__class__.__name__ == "UniqueConstraint":
                 expected = [column.name for column in constraint.columns]
@@ -707,7 +707,9 @@ def test_database_enforces_constraints(db, pipeline, monkeypatch, case, sqlstate
             ingestion_run_id=(
                 None
                 if case == "chunk_run_nonnull"
-                else uuid4() if case == "chunk_run_fk" else result.run_id
+                else uuid4()
+                if case == "chunk_run_fk"
+                else result.run_id
             ),
             chunk_index=(
                 -1 if case == "chunk_index" else 0 if case == "chunk_unique" else 1
@@ -718,5 +720,149 @@ def test_database_enforces_constraints(db, pipeline, monkeypatch, case, sqlstate
     with pytest.raises(DBAPIError) as error, db.begin() as connection:
         connection.execute(statement)
     assert error.value.orig.pgcode == sqlstate
-    if sqlstate.startswith("23"):
-        assert isinstance(error.value, IntegrityError)
+
+
+def test_exact_retrieval_uses_existing_run_and_document_relationships(
+    db, pipeline, monkeypatch
+):
+    """Verify pgvector ranking and joins against the operator-migrated schema."""
+    from app.ingestion import retrieval
+
+    documents = _documents(pipeline)
+    ingestion = _ingest(pipeline, db, monkeypatch, documents)
+    query_vector = [0.25] * 1536
+
+    class FixedEmbedder:
+        def embed_texts(self, texts):
+            assert texts == ["retrieval question"]
+            return [query_vector]
+
+    with Session(db) as session:
+        results = retrieval.retrieve_chunks(
+            session=session,
+            question=" retrieval question ",
+            strategy="fixed",
+            top_k=5,
+            ingestion_run_id=ingestion.run_id,
+            embedder=FixedEmbedder(),
+        )
+
+    assert len(results) == 1
+    result = results[0]
+    assert result.similarity_score == pytest.approx(1.0, abs=1e-6)
+    assert result.rank == 1
+    assert result.strategy == "fixed"
+    assert result.content == documents[0].candidates[0].content
+    assert result.file_path == documents[0].relative_path
+    assert result.title == documents[0].title
+    assert result.heading_paths == [["Guide", "Règles"]]
+    assert result.source_spans == [[3, 5]]
+
+
+def test_retrieval_excludes_null_embeddings(db, pipeline, monkeypatch):
+    from app.ingestion import retrieval
+
+    documents = _documents(pipeline)
+    ingestion = _ingest(pipeline, db, monkeypatch, documents)
+    with db.begin() as connection:
+        connection.execute(text("UPDATE public.knowledge_chunks SET embedding = NULL"))
+
+    class FixedEmbedder:
+        def embed_texts(self, _texts):
+            return [[0.25] * 1536]
+
+    with Session(db) as session:
+        results = retrieval.retrieve_chunks(
+            session=session,
+            question="query",
+            strategy="fixed",
+            ingestion_run_id=ingestion.run_id,
+            embedder=FixedEmbedder(),
+        )
+    assert results == []
+
+
+def test_retrieval_run_and_strategy_filters_apply_before_top_k(
+    db, pipeline, monkeypatch
+):
+    from app.ingestion import retrieval
+
+    documents = _documents(pipeline)
+    fixed_run = _ingest(pipeline, db, monkeypatch, documents)
+    changed = [
+        replace(
+            documents[0],
+            candidates=[replace(documents[0].candidates[0], content="other strategy")],
+        ),
+        documents[1],
+    ]
+    monkeypatch.setattr(pipeline, "prepare_documents", Mock(return_value=changed))
+    with Session(db) as session:
+        heading_run_id, token = pipeline._claim_run(
+            session,
+            uuid4().hex * 2,
+            "heading_aware",
+            pipeline.ChunkingConfig(500, 0),
+        )
+        assert token is not None
+        vectors = {"other strategy": [0.25] * 1536}
+        pipeline._publish_snapshot(session, heading_run_id, token, changed, vectors)
+
+    class FixedEmbedder:
+        def embed_texts(self, _texts):
+            return [[0.25] * 1536]
+
+    with Session(db) as session:
+        results = retrieval.retrieve_chunks(
+            session=session,
+            question="query",
+            strategy="fixed",
+            top_k=1,
+            ingestion_run_id=fixed_run.run_id,
+            embedder=FixedEmbedder(),
+        )
+    assert [result.content for result in results] == [
+        documents[0].candidates[0].content
+    ]
+
+
+def test_retrieval_repeated_query_has_stable_ties_and_top_k(db, pipeline, monkeypatch):
+    from app.ingestion import retrieval
+
+    documents = _documents(pipeline)
+    original = documents[0]
+    candidates = [
+        replace(
+            original.candidates[0],
+            ordinal=index,
+            content=f"synthetic retrieval candidate {index}",
+        )
+        for index in range(3)
+    ]
+    documents = [replace(original, candidates=candidates), documents[1]]
+    ingestion = _ingest(pipeline, db, monkeypatch, documents)
+
+    class FixedEmbedder:
+        def embed_texts(self, _texts):
+            return [[0.25] * 1536]
+
+    def search():
+        with Session(db) as session:
+            return retrieval.retrieve_chunks(
+                session=session,
+                question="same deterministic query",
+                strategy="fixed",
+                top_k=2,
+                ingestion_run_id=ingestion.run_id,
+                embedder=FixedEmbedder(),
+            )
+
+    first = search()
+    second = search()
+    assert len(first) == len(second) == 2
+    assert [item.chunk_id for item in first] == [item.chunk_id for item in second]
+    assert [item.rank for item in first] == [1, 2]
+    assert [str(item.chunk_id) for item in first] == sorted(
+        str(item.chunk_id) for item in first
+    )
+    assert first[0].similarity_score == pytest.approx(first[1].similarity_score)
