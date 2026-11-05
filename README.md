@@ -29,6 +29,14 @@ To help developers quickly find and understand engineering best practices, devel
 
 ## Running this app
 
+### Create .env
+```
+cd backend
+```
+```
+cp -n env.example .env
+```
+
 ### Run backend
 
 Create .env
