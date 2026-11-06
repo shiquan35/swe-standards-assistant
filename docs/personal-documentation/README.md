@@ -1,8 +1,6 @@
 # Info & Decisions
 
-Documentation in /info-decisions are written solely by Shi Quan. No LLM was involved.
-
-*Might rename to /personal-documentation*
+Documentation in /personal-documentation are written solely by Shi Quan. No LLM was involved.
 
 The documentation contains
 

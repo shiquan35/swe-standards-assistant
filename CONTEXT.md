@@ -28,6 +28,10 @@ _Avoid_: Section when referring to a persisted content unit.
 A transient, not-yet-persisted content unit produced by chunking a handbook document.
 _Avoid_: Chunk when referring specifically to output that has not been persisted.
 
+**Chunking strategy**:
+A method for dividing a handbook document into persisted chunks, such as fixed, fixed-overlap, or heading-aware chunking.
+_Avoid_: Retrieval strategy; chunking strategy describes source segmentation, not how retrieved chunks are ranked.
+
 **Heading path**:
 The ordered hierarchy of plain-text titles from the document title through the containing section titles.
 _Avoid_: Heading when the full ancestry is intended; heading may mean only the nearest title.

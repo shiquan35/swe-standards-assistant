@@ -180,6 +180,33 @@ uv run alembic revision -m "Manual migration"
 uv run alembic downgrade -1
 ```
 
+### Search the Engineering Handbook
+
+Run from the backend directory:
+
+```bash
+uv run python -m app.functions.search_handbook \
+   --query "What are the requirements for approving a pull request?" \
+   --strategy heading_aware \
+   --top-k 5
+```
+
+The command calls `retrieve_chunks()` against the latest completed ingestion run
+for the selected strategy. It requires a migrated PostgreSQL database with pgvector,
+`DB_FULL_CONNECTION_STRING`, and `OPENAI_API_KEY` for query embeddings. Create a
+completed snapshot with the ingestion CLI before searching.
+
+`--query` and `--strategy` are required. Strategies are `fixed`, `fixed_overlap`,
+and `heading_aware`; `--top-k` defaults to 5 and accepts values from 1 to 100.
+
+Output includes the query, strategy, requested limit, and each chunk's rank,
+four-decimal cosine similarity, document title, heading path(s), stored source
+path, line range(s), and full content. Multiple heading paths use `;` separators
+and multiple line ranges use commas; absent metadata displays `(none)`.
+No results prints `No matching chunks found.` and succeeds. Runtime failures
+print a safe message to stderr and exit with status 1; invalid arguments exit
+with status 2. This retrieves excerpts only; it does not generate an answer.
+
 ## API Endpoints
 
 ### Health Check
