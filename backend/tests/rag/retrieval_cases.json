@@ -1,0 +1,10 @@
+{
+  "id": "RET-001",
+  "question": "What are the requirements for approving a pull request?",
+  "expected_sources": ["code-review.md"],
+  "expected_evidence": [
+    "The handbook section specifying PR approval requirements"
+  ],
+  "answerable": true,
+  "category": "direct_lookup"
+}
