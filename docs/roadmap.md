@@ -17,7 +17,7 @@
 
 ## Phase 3 - Retrieval
 
-10. Implement vector similarity search
+10. Implement vector similarity search &#9989;
 11. Evaluate retrieval using test cases
 12. Experiment with retrieval and chunking strategies
 
