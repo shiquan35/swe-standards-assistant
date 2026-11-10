@@ -77,7 +77,7 @@ Objective: Verify that the assistant can retrieve and combine relevant informati
 TC-011
 
 ```text
-What security and testing checks must be completed before deploying an application?
+What security and testing requirements should be considered before deploying an application?
 ```
 
 TC-012
