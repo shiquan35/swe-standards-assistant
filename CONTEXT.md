@@ -35,3 +35,19 @@ _Avoid_: Retrieval strategy; chunking strategy describes source segmentation, no
 **Heading path**:
 The ordered hierarchy of plain-text titles from the document title through the containing section titles.
 _Avoid_: Heading when the full ancestry is intended; heading may mean only the nearest title.
+
+**Evaluation case**:
+A question and its curated labels used to assess retrieval behavior; the labels describe known support, not every result that could be useful.
+_Avoid_: Ground-truth case when the labels are intentionally incomplete.
+
+**Expected evidence**:
+A handbook statement known to support an evaluation case; the set may be incomplete and its absence from retrieved content does not prove a result irrelevant.
+_Avoid_: Complete answer key.
+
+**Evidence coverage**:
+The portion of an evaluation case's expected evidence found in retrieved content; it is a retrieval diagnostic, not a complete measure of relevance or answer quality.
+_Avoid_: Overall retrieval quality when only curated evidence labels are available.
+
+**Manual relevance judgment**:
+A human assessment of whether a retrieved result is useful for answering its evaluation case, including useful results not represented by the curated evidence labels.
+_Avoid_: Evidence match; these are distinct assessments.
