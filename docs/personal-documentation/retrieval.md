@@ -31,4 +31,12 @@ Since "known_relevant_sources" and "expected_evidence" in `retrieval_cases.json`
 
 This is to avoid penalising the chunking strategies even though they retrieved useful content from sources I did not list.
 
+## Evaluation metrics
+- Hit@K
+    - did we retrieve at least one relevant result
+- Mean Reciprocal Rank (MRR)
+    - how high is the first relevant result ranked?
+- Recall@K
+    - how much of the required evidence did we retrieve?
+
 ## Evaluation report template
