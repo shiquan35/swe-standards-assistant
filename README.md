@@ -186,52 +186,6 @@ Document: Source Control Standards
 Heading: Source Control Standards > 4. Commits; Source Control Standards > 5. Pull requests; Source Control Standards > 6. Code review
 Source: backend/knowledge_base/engineering-handbook/source-control.md
 Lines: 39-39, 41-41, 43-43, 45-48, 49-49, 51-51, 53-53, 55-55, 57-63, 64-64, 66-66, 68-68, 70-70, 72-72, 74-82
-Content:
- SHOULD represent a logical unit of change.
-
-Commit messages SHOULD explain the intent of the change. Teams MAY use Conventional Commits if they find the convention useful.
-
-Examples:
-
-- `feat: add account search endpoint`
-
-- `fix: prevent duplicate invoice creation`
-
-- `docs: clarify local setup`
-
-Large unrelated changes SHOULD NOT be combined into a single commit solely for convenience.
-
-## 5\. Pull requests
-
-Changes to protected branches MUST be submitted through a pull request.
-
-A pull request SHOULD:
-
-- have a clear title and description;
-
-- explain why the change is needed;
-
-- describe significant implementation decisions;
-
-- identify relevant tests;
-
-- link to a work item when one exists;
-
-- remain small enough to review effectively.
-
-Authors SHOULD review their own diff before requesting review.
-
-## 6\. Code review
-
-At least one qualified reviewer other than the author MUST approve a production code change before merge.
-
-High-risk changes MAY require additional reviewers according to team policy.
-
-Reviewers SHOULD consider:
-
-- correctness;
-
--
 
 Rank: 2
 Similarity: 0.5414
