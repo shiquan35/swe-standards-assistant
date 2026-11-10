@@ -239,36 +239,6 @@ Document: Source Control Standards
 Heading: Source Control Standards > 6. Code review; Source Control Standards > 7. Merge requirements; Source Control Standards > 8. Emergency changes
 Source: backend/knowledge_base/engineering-handbook/source-control.md
 Lines: 74-82, 83-83, 85-85, 87-87, 89-89, 91-91, 93-93, 95-95, 97-97
-Content:
- security;
-
-- maintainability;
-
-- tests;
-
-- backward compatibility;
-
-- performance where relevant;
-
-- observability;
-
-- documentation.
-
-The author MUST resolve blocking review comments before merge.
-
-## 7\. Merge requirements
-
-Required automated checks MUST pass before a pull request is merged.
-
-A repository SHOULD configure branch protection to enforce applicable checks and approvals.
-
-Force pushes to the protected default branch MUST NOT be permitted.
-
-## 8\. Emergency changes
-
-Emergency production fixes MAY use an expedited review process when normal review would cause unacceptable operational impact.
-
-The change MUST still be recorded in source control and SHOULD receive retrospective review after the incident is stabilized.
 
 Rank: 3
 Similarity: 0.4270
@@ -276,36 +246,6 @@ Document: Testing Standards
 Heading: Testing Standards > 4. End-to-end tests; Testing Standards > 5. Test coverage; Testing Standards > 6. Pull request testing; Testing Standards > 7. Test data; Testing Standards > 8. Flaky tests
 Source: backend/knowledge_base/engineering-handbook/testing-standards.md
 Lines: 38-38, 40-40, 42-42, 44-44, 46-46, 48-48, 50-50, 52-52, 54-54, 56-56, 58-58, 60-60, 62-62, 64-64, 66-66
-Content:
- lower-level tests.
-
-## 5\. Test coverage
-
-There is no organization-wide mandatory percentage for code coverage.
-
-Teams SHOULD use coverage as a diagnostic signal rather than a target by itself. A high coverage percentage does not replace meaningful assertions or appropriate test cases.
-
-Critical logic SHOULD be tested even when the overall repository coverage target has already been reached.
-
-## 6\. Pull request testing
-
-Required automated tests MUST pass before production code is merged into a protected branch.
-
-A code change SHOULD include new or updated tests when it changes testable behavior.
-
-Bug fixes SHOULD include a regression test when practical.
-
-## 7\. Test data
-
-Automated tests SHOULD use synthetic or appropriately sanitized data.
-
-Production personal data, credentials, and secrets MUST NOT be copied into local test fixtures or committed to a repository.
-
-## 8\. Flaky tests
-
-Known flaky tests SHOULD be investigated promptly.
-
-A flaky test MUST NOT be repeatedly retried indefinitely to hide instability. If temporarily quarantined, the test SHOULD have an
 
 Rank: 4
 Similarity: 0.4214
@@ -313,54 +253,6 @@ Document: Source Control Standards
 Heading: Source Control Standards; Source Control Standards > 1. Repository requirements; Source Control Standards > 2. Default branch; Source Control Standards > 3. Branch naming; Source Control Standards > 4. Commits
 Source: backend/knowledge_base/engineering-handbook/source-control.md
 Lines: 3-3, 5-5, 7-7, 9-14, 15-15, 17-17, 19-19, 21-21, 23-23, 25-25, 27-27, 29-34, 35-35, 37-37, 39-39
-Content:
-# Source Control Standards
-
-## 1\. Repository requirements
-
-All production application code MUST be stored in an approved source control system.
-
-Repositories SHOULD contain:
-
-- a README;
-
-- dependency manifests and lock files;
-
-- build and test instructions;
-
-- configuration examples where appropriate;
-
-- ownership information.
-
-Secrets, credentials, access tokens, private keys, and production configuration values MUST NOT be committed to source control.
-
-## 2\. Default branch
-
-The default branch SHOULD be named `main`.
-
-The default branch MUST be protected against direct pushes for production repositories. Changes SHOULD enter the default branch through pull requests.
-
-## 3\. Branch naming
-
-Branches SHOULD use a descriptive prefix and short purpose.
-
-Recommended patterns include:
-
-- `feature/add-user-search`
-
-- `fix/login-timeout`
-
-- `docs/update-api-guide`
-
-- `chore/upgrade-dependencies`
-
-- `hotfix/payment-validation`
-
-Branches SHOULD be short-lived and deleted after they are merged.
-
-## 4\. Commits
-
-Commits
 
 Rank: 5
 Similarity: 0.3554
@@ -368,41 +260,4 @@ Document: Coding Standards
 Heading: Coding Standards; Coding Standards > 1. General requirements; Coding Standards > 2. Naming; Coding Standards > 3. Functions and modules; Coding Standards > 4. Comments
 Source: backend/knowledge_base/engineering-handbook/coding-standards.md
 Lines: 3-3, 5-5, 7-7, 9-9, 11-11, 13-13, 15-15, 17-17, 19-22, 23-23, 25-25, 27-27, 29-29, 31-31, 33-33
-Content:
-# Coding Standards
-
-## 1\. General requirements
-
-Projects MUST use the standard formatter and linter selected by the owning team.
-
-Formatting SHOULD be automated rather than manually enforced during code review.
-
-Code MUST NOT contain unresolved merge markers, debugging statements intended only for local development, or commented-out blocks of obsolete code.
-
-## 2\. Naming
-
-Names SHOULD communicate intent.
-
-Variables and functions SHOULD use the language ecosystem's conventional naming style. Abbreviations SHOULD be avoided unless they are widely understood in the project domain.
-
-Boolean names SHOULD make the true/false meaning obvious, for example:
-
-- `is_active`
-
-- `has_permission`
-
-- `can_retry`
-
-## 3\. Functions and modules
-
-Functions SHOULD have a single clear responsibility.
-
-Long functions SHOULD be decomposed when doing so improves readability, testability, or reuse. There is no organization-wide maximum function length.
-
-Modules SHOULD group related behavior and expose a deliberate public interface.
-
-## 4\. Comments
-
-Comments SHOULD explain why a decision exists rather than
-(backend) ongshiquan@KY9YHN-C79E6C55 backend % 
 ```
