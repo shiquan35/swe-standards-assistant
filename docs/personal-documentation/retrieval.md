@@ -8,6 +8,14 @@ To assess the following:
 * Which chunking strategy performs best?
 * How does changing `top_k`, chunk size and overlap affect results?
 
+**Note:**
+After triggering an evaluation, a results JSON file will be created.
+
+You can use an LLM to help analyse the report, interpret the metrics, and identify potential areas for improvement.
+However, retrieval evaluation should ideally combine quantitative analysis (evaluation metrics) with qualitative assessment (manually reviewing whether the retrieved chunks are relevant and useful for answering the questions).
+
+LLM-generated interpretations should also be reviewed rather than accepted without verification.
+
 ## Preparation
 
 - test dataset in JSON
@@ -85,7 +93,6 @@ All six rows ran successfully against existing completed PostgreSQL/pgvector
 snapshots using `text-embedding-3-small`. The complete report is
 [retrieval-20261110T083627933914Z.json](../../backend/evaluation-reports/retrieval-20261110T083627933914Z.json).
 
-
 | Strategy      | Tokens | Overlap | K | EvidenceHit@K | Macro evidence Recall@K |
 | ------------- | ------ | ------- | - | ------------- | ----------------------- |
 | fixed         | 200    | 0       | 3 | 1.0000        | 0.8611                  |
@@ -94,7 +101,6 @@ snapshots using `text-embedding-3-small`. The complete report is
 | fixed_overlap | 200    | 40      | 5 | 1.0000        | 0.9056                  |
 | heading_aware | 200    | 40      | 3 | 1.0000        | 0.8389                  |
 | heading_aware | 200    | 40      | 5 | 1.0000        | 0.9333                  |
-
 
 ### Interpretation
 
