@@ -207,6 +207,49 @@ No results prints `No matching chunks found.` and succeeds. Runtime failures
 print a safe message to stderr and exit with status 1; invalid arguments exit
 with status 2. This retrieves excerpts only; it does not generate an answer.
 
+### Evaluate Handbook Retrieval
+
+Run the module `app.functions.evaluate_retrieval` from the backend directory with
+`uv run python -m app.functions.evaluate_retrieval`. Its `--help` requires no
+database or provider configuration. There is no taskipy alias.
+
+The default dataset is [tests/rag/retrieval_cases.json](tests/rag/retrieval_cases.json).
+Defaults compare all three strategies at 200 tokens, overlap 0 for `fixed` and
+40 otherwise, at top-K 3 and 5 (six report experiments). Repeating `--strategy`,
+`--max-tokens`, `--overlap-tokens`, or `--top-k` forms a deduplicated Cartesian
+grid; fixed overlap always remains zero. For example, append
+`--max-tokens 200 --max-tokens 400 --top-k 3 --top-k 5` to compare both sizes.
+Top-K must be 1–100, and non-fixed overlap must be smaller than every selected size.
+
+Requires a migrated PostgreSQL/pgvector database, `DB_FULL_CONNECTION_STRING`,
+`OPENAI_API_KEY`, and completed ingestion snapshots for every exact configuration
+using `text-embedding-3-small`. No ingestion is performed automatically.
+Each configuration must have exactly one compatible completed run; resolve
+ambiguity with repeated `--run-id STRATEGY:MAX:OVERLAP=UUID` overrides.
+All selected runs must contain the same complete path/source-hash mapping and
+match the current local handbook. This source-only identity is distinct from
+each strategy-dependent full snapshot fingerprint. All preflight checks finish
+before question embedding. A missing, ambiguous, or stale run fails the invocation.
+
+Query vectors are cached only for the invocation by model and exact effective
+input (outer whitespace trimmed, case/internal whitespace preserved). Each
+case/run is retrieved once at maximum K; lower cutoffs slice that ranking.
+
+The console reports **incomplete-ground-truth evidence coverage**, not overall
+relevance. JSON includes one experiment per cutoff, per-case ranked full chunks,
+source line spans, evidence statements/all matching ranks, source diagnostics,
+run fingerprints, dataset SHA-256, configuration and explicit metric denominators.
+Human relevance is pending (`relevance: null`); Hit@K/MRR require manual judgments.
+Unanswerable and injection cases are separate retrieval diagnostics, not tests of
+abstention or instruction resistance. No strategy winner is inferred.
+
+Reports default to UTC-timestamped JSON under the backend evaluation-reports
+directory. `--dataset` selects another validated dataset; `--output` sets a report
+path. Existing paths require `--force`. Publication is atomic; failures leave no
+partial report. Reports contain full handbook text: review them before sharing.
+Failures print safe reason codes to stderr (status 1); argparse errors use status 2.
+Offline tests can be run with `uv run pytest tests/evaluation --confcutdir=tests/evaluation`.
+
 ## API Endpoints
 
 ### Health Check

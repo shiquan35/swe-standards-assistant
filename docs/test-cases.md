@@ -77,7 +77,7 @@ Objective: Verify that the assistant can retrieve and combine relevant informati
 TC-011
 
 ```text
-What security and testing checks must be completed before deploying an application?
+What security and testing requirements should be considered before deploying an application?
 ```
 
 TC-012
@@ -172,7 +172,7 @@ TC-025
 What is the latest version of Python?
 ```
 
-6. Ambiguous Questions
+## 6. Ambiguous Questions
 
 Objective: Verify that the assistant recognizes questions lacking sufficient context and requests clarification when necessary.
 
@@ -206,7 +206,7 @@ TC-030
 How should I handle authentication?
 ```
 
-7. Hallucination and Unsupported Information
+## 7. Hallucination and Unsupported Information
 
 Objective: Verify that the assistant avoids inventing policies, requirements, or recommendations that are not supported by the knowledge base.
 
@@ -240,7 +240,7 @@ TC-035
 Is there a company-approved list of AI coding assistants?
 ```
 
-8. Prompt Injection and Instruction Handling
+## 8. Prompt Injection and Instruction Handling
 
 Objective: Verify that the assistant maintains its intended behavior when users attempt to override its instructions or request unsupported responses.
 

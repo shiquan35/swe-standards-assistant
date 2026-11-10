@@ -18,8 +18,8 @@
 ## Phase 3 - Retrieval
 
 10. Implement vector similarity search &#9989;
-11. Evaluate retrieval using test cases
-12. Experiment with retrieval and chunking strategies
+11. Evaluate retrieval using test cases &#9989;
+12. Experiment with retrieval and chunking strategies &#9989;
 
 ## Phase 4 - RAG
 
