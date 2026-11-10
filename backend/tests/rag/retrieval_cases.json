@@ -1,10 +1,25 @@
-{
-  "id": "RET-001",
-  "question": "What are the requirements for approving a pull request?",
-  "known_relevant_sources": ["code-review.md"],
-  "expected_evidence": [
-    "The handbook section specifying PR approval requirements"
-  ],
-  "answerable": true,
-  "category": "direct_lookup"
-}
+[
+  {
+    "id": "TEST-001",
+    "question": "What are the requirements for approving a pull request?",
+    "known_relevant_sources": ["source-control.md"],
+    "expected_evidence": [
+      "Required automated checks MUST pass before a pull request is merged.",
+      "A repository SHOULD configure branch protection to enforce applicable checks and approvals."
+    ],
+    "answerable": true,
+    "category": "direct_lookup"
+  },
+  {
+    "id": "TEST-002",
+    "question": "What is the recommended branching strategy?",
+    "known_relevant_sources": ["source-control.md"],
+    "expected_evidence": [
+      "Branches SHOULD use a descriptive prefix and short purpose.",
+      "Branches SHOULD be short-lived and deleted after they are merged.",
+      "The default branch SHOULD be named `main`."
+    ],
+    "answerable": true,
+    "category": "direct_lookup"
+  }
+]
