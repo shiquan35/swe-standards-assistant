@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import SecretStr
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -11,6 +11,14 @@ class Env(BaseSettings):
     # Embedding credentials are required only when making an uncached request.
     OPENAI_API_KEY: SecretStr | None = None
     OPENAI_EMBEDDING_MODEL: Literal["text-embedding-3-small"] = "text-embedding-3-small"
+
+    # Single-turn generation budgets; model/tokenizer compatibility is checked by RAG.
+    OPENAI_CHAT_MODEL: str = "gpt-6-luna"
+    RAG_MAX_INPUT_TOKENS: int = Field(default=32000, gt=0)
+    RAG_MAX_OUTPUT_TOKENS: int = Field(default=4096, gt=0)
+    RAG_TOKEN_SAFETY_MARGIN: float = Field(default=0.20, ge=0, le=1)
+    # Operator-known model limit, not inferred from the model name.
+    RAG_MODEL_CONTEXT_WINDOW: int = Field(default=1050000, gt=0)
 
     # Guardrails settings
     guardrails_backend: Literal["model_armor", "none"] = "none"
