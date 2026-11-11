@@ -9,23 +9,23 @@
 5. Set up Alembic and users table &#9989;
 6. Create schema for knowledge base &#9989;
 
-## Phase 2 - Knowledge Ingestion
+## Phase 2 - Knowledge Ingestion &#9989;
 
 7. Build Markdown parser &#9989;
 8. Build initial chunking strategy &#9989;
 9. Generate embeddings &#9989;
 
-## Phase 3 - Retrieval
+## Phase 3 - Retrieval &#9989;
 
 10. Implement vector similarity search &#9989;
 11. Evaluate retrieval using test cases &#9989;
 12. Experiment with retrieval and chunking strategies &#9989;
 
-## Phase 4 - RAG
+## Phase 4 - RAG &#9989;
 
-13. Build RAG pipeline
-14. Add source citations
-15. Handle unanswerable questions ("I don't know")
+13. Build RAG pipeline &#9989;
+14. Add source citations &#9989;
+15. Handle unanswerable questions ("I don't know") &#9989;
 
 ## Phase 5 - Conversational RAG
 
