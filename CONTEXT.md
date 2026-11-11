@@ -51,3 +51,37 @@ _Avoid_: Overall retrieval quality when only curated evidence labels are availab
 **Manual relevance judgment**:
 A human assessment of whether a retrieved result is useful for answering its evaluation case, including useful results not represented by the curated evidence labels.
 _Avoid_: Evidence match; these are distinct assessments.
+
+## RAG responses
+
+**Evidence**:
+Handbook content that can support an answer to a question.
+_Avoid_: Context when specifically referring to source material that supports an answer.
+
+**Claim**:
+An independently verifiable factual statement made in an answer.
+_Avoid_: Answer when referring to an individual factual statement.
+
+**Citation**:
+A reference from an answer claim to the handbook source material offered as its support.
+_Avoid_: Source list when claim-level attribution is intended.
+
+**Abstention**:
+A response indicating that available handbook evidence does not support answering the question.
+_Avoid_: Error; an abstention is a content outcome, not an operational failure.
+
+**Clarification request**:
+A question seeking missing or disambiguating information needed to answer reliably.
+_Avoid_: Abstention when clarification can resolve uncertainty in the user's request.
+
+**Answerable question**:
+A question whose requested factual claims are supported by the available handbook evidence.
+_Avoid_: Retrieved question; the existence of retrieved chunks alone does not establish answerability.
+
+**Partial response**:
+A response to a clear question that presents supported claims and identifies requested parts not supported by available handbook evidence.
+_Avoid_: Abstention when some requested claims can be supported.
+
+**Single-turn RAG request**:
+One independent question-and-response exchange that does not depend on conversational history.
+_Avoid_: Conversation turn when referring to a stateless request.

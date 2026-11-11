@@ -236,3 +236,15 @@ uv run python -m app.functions.evaluate_retrieval \
   --top-k 5 \
   --output evaluation-reports/my-evaluation.json
 ```
+
+### Ask a question :D
+```bash
+uv run python -m app.functions.answer_handbook \
+  "What are the requirements for approving a pull request?"
+```
+For structured JSON output:
+```bash
+uv run python -m app.functions.answer_handbook \
+  "What are the requirements for approving a pull request?" \
+  --json
+```
