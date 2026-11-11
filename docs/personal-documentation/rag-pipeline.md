@@ -10,6 +10,9 @@
 6. LLM generates answer
 7. Return answer
 
+Current implementation is a **Stateless RAG.**
+Context and interaction history are discarded immediately after generating an answer.
+
 ## Chosen strategy
 
 - Heading-aware, 200 tokens + 40 overlap
