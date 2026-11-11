@@ -46,6 +46,16 @@ class RetrievalResult:
     title: str
 
 
+def _validate_strategy(strategy: object) -> ChunkStrategy:
+    if not isinstance(strategy, str) or strategy not in {
+        "fixed",
+        "fixed_overlap",
+        "heading_aware",
+    }:
+        raise ValueError("invalid_strategy")
+    return cast(ChunkStrategy, strategy)
+
+
 def _validate_arguments(
     question: object,
     strategy: object,
@@ -54,17 +64,12 @@ def _validate_arguments(
 ) -> tuple[str, ChunkStrategy]:
     if not isinstance(question, str) or not question.strip():
         raise ValueError("question_must_be_nonempty_string")
-    if not isinstance(strategy, str) or strategy not in {
-        "fixed",
-        "fixed_overlap",
-        "heading_aware",
-    }:
-        raise ValueError("invalid_strategy")
+    normalized_strategy = _validate_strategy(strategy)
     if type(top_k) is not int or not 1 <= top_k <= MAX_TOP_K:
         raise ValueError("top_k_out_of_range")
     if ingestion_run_id is not None and not isinstance(ingestion_run_id, UUID):
         raise ValueError("ingestion_run_id_must_be_uuid")
-    return question.strip(), cast(ChunkStrategy, strategy)
+    return question.strip(), normalized_strategy
 
 
 def _resolve_run(
@@ -124,6 +129,21 @@ def _resolve_run(
             ingestion_run_id,
         )
         raise RetrievalError("database_error") from None
+
+
+def resolve_latest_completed_run(
+    *, session: Session, strategy: ChunkStrategy
+) -> IngestionRun:
+    """Resolve the newest compatible snapshot without fallback or session ownership.
+
+    Unlike retrieval's legacy empty-list behavior, a missing snapshot is an
+    operational failure. Model validation is shared with explicit retrieval.
+    """
+    normalized_strategy = _validate_strategy(strategy)
+    run = _resolve_run(session, strategy=normalized_strategy, ingestion_run_id=None)
+    if run is None:
+        raise RetrievalError("missing_snapshot")
+    return run
 
 
 def _validate_query_vector(vectors: object) -> list[float]:

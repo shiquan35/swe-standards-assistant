@@ -93,6 +93,77 @@ def test_no_completed_run_returns_empty_without_embedding(retrieval) -> None:
     session.flush.assert_not_called()
 
 
+def test_resolver_missing_snapshot_is_operational_error(retrieval) -> None:
+    session = session_with_run(None)
+    with pytest.raises(retrieval.RetrievalError) as caught:
+        retrieval.resolve_latest_completed_run(
+            session=session, strategy="heading_aware"
+        )
+    assert caught.value.reason_code == "missing_snapshot"
+    session.exec.assert_called_once()
+    session.flush.assert_not_called()
+
+
+@pytest.mark.parametrize("strategy", ["fixed", "fixed_overlap", "heading_aware"])
+def test_resolver_returns_latest_completed_run_and_preserves_session(
+    retrieval, strategy: str
+) -> None:
+    run = completed_run(strategy=strategy)
+    session = session_with_run(run)
+    assert (
+        retrieval.resolve_latest_completed_run(session=session, strategy=strategy)
+        is run
+    )
+    statement = session.exec.call_args.args[0]
+    compiled = statement.compile(dialect=postgresql.dialect())
+    sql = str(compiled)
+    assert "ORDER BY ingestion_runs.created_at DESC, ingestion_runs.id ASC" in sql
+    assert "LIMIT" in sql
+    assert strategy in compiled.params.values()
+    assert "completed" in compiled.params.values()
+    assert 1 in compiled.params.values()
+    session.exec.assert_called_once()
+    for method in (session.flush, session.commit, session.rollback, session.close):
+        method.assert_not_called()
+
+
+@pytest.mark.parametrize("strategy", [None, [], "unknown", " heading_aware "])
+def test_resolver_rejects_invalid_strategy_before_database(retrieval, strategy) -> None:
+    session = Mock(spec=Session)
+    with pytest.raises(ValueError, match="invalid_strategy"):
+        retrieval.resolve_latest_completed_run(session=session, strategy=strategy)
+    session.exec.assert_not_called()
+
+
+def test_resolver_latest_model_mismatch_never_falls_back(retrieval) -> None:
+    newest = completed_run(strategy="heading_aware", model="different-model")
+    older = completed_run(strategy="heading_aware")
+    session = session_with_run(newest)
+    session.exec.side_effect = [
+        Mock(one_or_none=Mock(return_value=newest)),
+        Mock(one_or_none=Mock(return_value=older)),
+    ]
+    with pytest.raises(retrieval.RetrievalError) as caught:
+        retrieval.resolve_latest_completed_run(
+            session=session, strategy="heading_aware"
+        )
+    assert caught.value.reason_code == "run_not_searchable"
+    session.exec.assert_called_once()
+
+
+def test_resolver_database_failure_is_sanitized(retrieval) -> None:
+    session = session_with_run(None)
+    session.exec.side_effect = RuntimeError("private database credentials")
+    with pytest.raises(retrieval.RetrievalError) as caught:
+        retrieval.resolve_latest_completed_run(
+            session=session, strategy="heading_aware"
+        )
+    assert caught.value.reason_code == "database_error"
+    assert "private" not in str(caught.value)
+    assert caught.value.__suppress_context__
+    assert "private" not in str(retrieval.app_logger.mock_calls)
+
+
 def test_invalid_explicit_run_fails_before_embedding(retrieval) -> None:
     session = session_with_run(None)
     embedder = Mock()

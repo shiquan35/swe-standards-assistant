@@ -250,6 +250,115 @@ partial report. Reports contain full handbook text: review them before sharing.
 Failures print safe reason codes to stderr (status 1); argparse errors use status 2.
 Offline tests can be run with `uv run pytest tests/evaluation --confcutdir=tests/evaluation`.
 
+### Answer a Handbook Question (Single-Turn RAG)
+
+From the backend directory, invoke `uv run python -m app.functions.answer_handbook "What are the requirements for approving a pull request?"`.
+Append `--json` for a single typed JSON response instead of human output.
+`--help` and argument validation do not import application settings, the database,
+or the generation provider. One nonblank positional question is required; outer
+whitespace is trimmed. There is no HTTP endpoint, conversation history, or answer
+persistence.
+
+Prerequisites: operator-migrated PostgreSQL with pgvector, a configured
+`DB_FULL_CONNECTION_STRING`, `OPENAI_API_KEY`, and a completed `heading_aware`
+handbook ingestion snapshot using `text-embedding-3-small`. The newest completed
+run is selected with no fallback to an older run if its embedding model is
+incompatible. Retrieval uses `top_k=5`. Missing snapshots and incompatible runs
+are operational errors; successful empty retrieval abstains without generation.
+Nonempty evidence triggers at most one OpenAI Responses Structured Outputs
+generation request, with automatic generation retries disabled even for injected
+clients. Query embedding is a separate request with existing embedding behavior.
+
+The user-selected defaults are:
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `OPENAI_CHAT_MODEL` | `gpt-6-luna` | Generation model; model/account compatibility is live unverified |
+| `RAG_MAX_INPUT_TOKENS` | `32000` | Local estimated input budget |
+| `RAG_MAX_OUTPUT_TOKENS` | `4096` | Provider output allowance |
+| `RAG_TOKEN_SAFETY_MARGIN` | `.20` | Multiply the input estimate by 1.2 |
+| `RAG_MODEL_CONTEXT_WINDOW` | `1050000` | Operator-configured context-window assumption, not verified model capability |
+
+See [env.example](env.example). **Set `OPENAI_CHAT_MODEL=gpt-6-luna` yourself in
+your local ignored settings if an older value is present.** Implementation and
+offline validation do not read or edit that local file, check account access, or
+make paid requests. Live model/account access and Responses/Structured Outputs
+compatibility remain unverified until an operator opts into a live check; they
+are not implementation gates.
+
+Token accounting uses `tiktoken.encoding_for_model()` when known. By explicit
+user override, an unknown model mapping falls back to `o200k_base` for
+**unverified estimation**, not a verified tokenizer mapping. Complete logical
+JSON request serialization is counted, including model/instructions, escaped
+question and evidence, chunk IDs, titles/paths/headings/spans, delimiters,
+Structured Outputs schema and format flags, and other request fields. With the
+default settings the estimate is
+`ceil((serialized_tokens + 256) * 1.2)`: 256 tokens reserve message/SDK framing,
+then the 20% margin applies to the entire sum. The estimate must fit the input
+budget and, with the output allowance, the configured context window. Include
+only a contiguous ranked prefix; stop at the first non-fitting chunk. Do not
+truncate evidence or skip to a smaller lower-ranked chunk. Prompt-only or
+first-chunk overflow fails before generation.
+
+**Estimates are not guaranteed provider limits.** Real tokenizer/framing behavior
+can differ, especially for an unknown model. Provider context-limit rejection
+is an operational `provider_context_limit` error, not an abstention. Direct
+service calls emit metadata-only `rag_context_prepared` logs (encoding, fallback,
+serialized/estimated tokens, included/retrieved IDs and margin) and, when usage
+is returned, `rag_token_usage` logs comparing actual input/output tokens with
+estimated input (`estimate_error_tokens`, `estimate_exceeded`, and
+`actual_input_limit_exceeded`). No question, evidence, completion, or answer text
+is logged. The CLI suppresses application diagnostic logs during its invocation
+to keep stdout and mode-matched stderr clean; direct function callers retain
+metadata logging.
+
+Response content statuses all succeed with exit **0**:
+
+- `answered`: cited claims cover the clear request.
+- `partial`: cited claims plus explicit `unanswered_parts`.
+- `clarification_needed`: one `clarifying_question`, optionally cited claims and
+   unanswered parts; ambiguity takes precedence over partial.
+- `abstained`: no claims/citations and a meaningful evidence-only `reason`.
+
+Human output composes claims with inline numbered references and deduplicated
+sources containing title, path, heading paths, and line spans; unavailable
+metadata displays `(none)`. It also shows reason, unanswered parts, clarifying
+question when present, and ingestion run ID. JSON is the `RagResponse` contract:
+`status`, `claims` (`text`, `citation_ids`), `citations` (`chunk_id`, nullable
+`title`/`file_path`, `heading_paths`, `source_spans`), `ingestion_run_id`, nullable
+`clarifying_question`/`reason`, and `unanswered_parts`. No free-form answer field
+is generated. The application owns provenance and validates that the final
+citations exactly equal the claims' referenced included chunks. Citation support
+and atomicity are model-proposed, not independently verified entailment.
+
+Operational failures exit **1**; invalid arguments/blank questions exit **2**.
+Errors go only to stderr, human-readable by default or a single JSON object
+`{"error":{"reason_code":"…","message":"…"}}` with `--json`. Unknown exceptions
+are sanitized to `rag_failed`; rejected arguments, provider/DB details, secrets,
+and question text are never echoed. Typical operational codes include
+`missing_snapshot`, `run_not_searchable`, `missing_api_key`, `database_error`,
+`embedding_failed`, `configuration_failed`, `context_budget_exceeded`,
+`provider_context_limit`, `provider_failed`, `model_refusal`, `incomplete_output`,
+`invalid_model_output`, and `invalid_citation_source`. These are not content
+abstentions.
+
+#### Offline CLI tests and opt-in live smoke
+
+Run `uv run pytest tests/rag/test_answer_handbook.py tests/rag/test_live.py --confcutdir=tests/rag -q`
+with `RUN_LIVE_RAG_TEST` unset. CLI tests use fakes and import barriers without DB,
+settings-file reads, or OpenAI calls; the live smoke defaults to skipped. The
+`--confcutdir` boundary avoids parent application fixtures during discovery.
+
+Only an operator choosing to incur real embedding/generation charges should set
+`RUN_LIVE_RAG_TEST=1` and invoke `uv run pytest tests/rag/test_live.py --confcutdir=tests/rag -q`.
+The smoke calls `answer_question()` with a session from the application engine
+and a real OpenAI client; it does not ingest, migrate, or truncate data. It
+requires a populated compatible snapshot and checks a structured, cited outcome
+for a known handbook question so empty retrieval cannot masquerade as generation
+compatibility. An opted-in failure is not silently skipped. This is a smoke test,
+not a quality benchmark or proof of prompt-injection resistance. Do not auto-run
+paid tests or publish failure output containing interaction data.
+
 ## API Endpoints
 
 ### Health Check
