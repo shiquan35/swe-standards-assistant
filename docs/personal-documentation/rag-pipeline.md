@@ -1,5 +1,6 @@
+# RAG pipeline
 
-## RAG pipeline
+## Workflow
 
 1. User sends a question
 2. Convert question to embeddings
