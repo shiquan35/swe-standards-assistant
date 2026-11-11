@@ -1,5 +1,7 @@
 # RAG pipeline
 
+This document is written solely by Shi Quan. No LLM was involved.
+
 ## Workflow
 
 1. User sends a question
@@ -10,8 +12,13 @@
 6. LLM generates answer
 7. Return answer
 
-Current implementation is a **Stateless RAG.**
-Context and interaction history are discarded immediately after generating an answer.
+Current implementation is a **Single-turn, ****Stateless RAG**.
+
+* Each request contains one independent question.
+* The system retrieves relevant chunks from the knowledge base.
+* The LLM generates an answer based on the retrieved context.
+* No conversation history or session state is retained.
+* Every new question starts a fresh RAG execution.
 
 ## Chosen strategy
 
