@@ -27,6 +27,13 @@ To help developers quickly find and understand engineering best practices, devel
 | LLM             | OpenAI API                        |
 | Knowledge base  | Markdown files in repo            |
 
+## Important Files & Folders
+
+* `/docs/personal-documentation`
+  * `roadmap.md`: Contains the development roadmap of Developer Standards Assistant
+  * `test-cases.md`: Sample questions you can ask
+  * `/personal-documentation`: Contains Shi Quan's self-written documentation.
+
 ## Running this app
 
 ### Create .env
@@ -166,6 +173,7 @@ uv run python -m app.functions.search_handbook \
 ```
 
 Sample output:
+
 ```
 (backend) ongshiquan@KY9YHN-C79E6C55 backend % uv run python -m app.functions.search_handbook \
   --query "What are the requirements for approving a pull request?" \
@@ -215,19 +223,24 @@ Heading: Coding Standards; Coding Standards > 1. General requirements; Coding St
 Source: backend/knowledge_base/engineering-handbook/coding-standards.md
 Lines: 3-3, 5-5, 7-7, 9-9, 11-11, 13-13, 15-15, 17-17, 19-22, 23-23, 25-25, 27-27, 29-29, 31-31, 33-33
 ```
+
 ### Run Retrieval Evaluation
+
 Run 6 default experiments:
 200 tokens with. top-k 3 and 5.
+
 ```bash
 uv run python -m app.functions.evaluate_retrieval
 ```
 
 View all options
+
 ```bash
 uv run python -m app.functions.evaluate_retrieval --help
 ```
 
 Run a specific configuration
+
 ```bash
 uv run python -m app.functions.evaluate_retrieval \
   --strategy heading_aware \
@@ -238,11 +251,14 @@ uv run python -m app.functions.evaluate_retrieval \
 ```
 
 ### Ask a question :D
+
 ```bash
 uv run python -m app.functions.answer_handbook \
   "What are the requirements for approving a pull request?"
 ```
+
 For structured JSON output:
+
 ```bash
 uv run python -m app.functions.answer_handbook \
   "What are the requirements for approving a pull request?" \
